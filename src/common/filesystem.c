@@ -1262,7 +1262,11 @@ void
 FS_AddHomeAsGameDirectory(char *dir)
 {
 	char gdir[MAX_OSPATH];
+#if defined(PANDORA) || defined(WIZ) || defined(CAANOO)
+	char *homedir=getenv("PWD");
+#else
 	char *homedir=getenv("HOME");
+#endif
 
 	if(homedir)
 	{

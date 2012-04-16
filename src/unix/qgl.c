@@ -29,6 +29,8 @@
  * =======================================================================
  */
 
+#if !defined(QGL_DIRECT_LINK)
+
 #include <dlfcn.h>
 
 #include "../refresh/header/local.h"
@@ -4574,3 +4576,6 @@ GLimp_LogNewFrame ( void )
 {
 	fprintf( glw_state.log_fp, "*** R_BeginFrame ***\n" );
 }
+
+#endif
+

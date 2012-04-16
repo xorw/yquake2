@@ -251,21 +251,31 @@ Mod_ForName ( char *name, qboolean crash )
 
 	loadmodel = mod;
 
+#if defined(WIZ)
+    #define IDALIASHEADER_HUNKMAX 0x100000
+    #define IDSPRITEHEADER_HUNKMAX 0x10000
+    #define IDBSPHEADER_HUNKMAX 0x500000
+#else
+    #define IDALIASHEADER_HUNKMAX 0x200000
+    #define IDSPRITEHEADER_HUNKMAX 0x10000
+    #define IDBSPHEADER_HUNKMAX 0x1000000
+#endif
+
 	/* call the apropriate loader */
 	switch ( LittleLong( *(unsigned *) buf ) )
 	{
 		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin( 0x200000 );
+			loadmodel->extradata = Hunk_Begin( IDALIASHEADER_HUNKMAX );
 			LoadMD2( mod, buf );
 			break;
 
 		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin( 0x10000 );
+			loadmodel->extradata = Hunk_Begin( IDSPRITEHEADER_HUNKMAX );
 			LoadSP2( mod, buf );
 			break;
 
 		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin( 0x1000000 );
+			loadmodel->extradata = Hunk_Begin( IDBSPHEADER_HUNKMAX );
 			Mod_LoadBrushModel( mod, buf );
 			break;
 
@@ -1057,3 +1067,4 @@ R_EndRegistration ( void )
 
 	R_FreeUnusedImages();
 }
+

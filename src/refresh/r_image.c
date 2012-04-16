@@ -42,11 +42,11 @@ unsigned d_8to24table [ 256 ];
 qboolean R_Upload8 ( byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
 qboolean R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap );
 
-int gl_solid_format = 3;
-int gl_alpha_format = 4;
+int gl_solid_format = GL_RGB;
+int gl_alpha_format = GL_RGBA;
 
-int gl_tex_solid_format = 3;
-int gl_tex_alpha_format = 4;
+int gl_tex_solid_format = GL_RGB;
+int gl_tex_alpha_format = GL_RGBA;
 
 int gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int gl_filter_max = GL_LINEAR;
@@ -77,24 +77,28 @@ typedef struct
 } gltmode_t;
 
 gltmode_t gl_alpha_modes[] = {
-	{ "default", 4 },
+	{ "default", GL_RGBA },
 	{ "GL_RGBA", GL_RGBA },
+#if !defined(GLES)
 	{ "GL_RGBA8", GL_RGBA8 },
 	{ "GL_RGB5_A1", GL_RGB5_A1 },
 	{ "GL_RGBA4", GL_RGBA4 },
 	{ "GL_RGBA2", GL_RGBA2 },
+#endif
 };
 
 #define NUM_GL_ALPHA_MODES ( sizeof ( gl_alpha_modes ) / sizeof ( gltmode_t ) )
 
 gltmode_t gl_solid_modes[] = {
-	{ "default", 3 },
+	{ "default", GL_RGB },
 	{ "GL_RGB", GL_RGB },
+#if !defined(GLES)
 	{ "GL_RGB8", GL_RGB8 },
 	{ "GL_RGB5", GL_RGB5 },
 	{ "GL_RGB4", GL_RGB4 },
 	{ "GL_R3_G3_B2", GL_R3_G3_B2 },
 	{ "GL_RGB2", GL_RGB2_EXT },
+#endif
 };
 
 #define NUM_GL_SOLID_MODES ( sizeof ( gl_solid_modes ) / sizeof ( gltmode_t ) )
@@ -128,6 +132,7 @@ qboolean uploaded_paletted;
 void
 R_SetTexturePalette ( unsigned palette [ 256 ] )
 {
+#if !defined(GLES)
 	int i;
 	unsigned char temptable [ 768 ];
 
@@ -147,6 +152,7 @@ R_SetTexturePalette ( unsigned palette [ 256 ] )
 				GL_UNSIGNED_BYTE,
 				temptable );
 	}
+#endif
 }
 
 void
@@ -310,11 +316,13 @@ R_TextureMode ( char *string )
 			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min );
 			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
 
+#if !defined(GLES)
 			 /* Set anisotropic filter if supported and enabled */
 			if (gl_config.anisotropic && gl_anisotropic->value)
 			{
 				qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
 			}
+#endif
 		}
 	}
 }
@@ -719,6 +727,9 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 	{
 		if ( !mipmap )
 		{
+#if defined(GLES)
+            qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+#else
 			if ( qglColorTableEXT && gl_ext_palettedtexture->value && ( samples == gl_solid_format ) )
 			{
 				uploaded_paletted = true;
@@ -730,6 +741,7 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 			{
 				qglTexImage2D( GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
 			}
+#endif
 
 			goto done;
 		}
@@ -743,6 +755,9 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 
 	R_LightScaleTexture( scaled, scaled_width, scaled_height, !mipmap );
 
+#if defined(GLES)
+    qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled );
+#else
 	if ( qglColorTableEXT && gl_ext_palettedtexture->value && ( samples == gl_solid_format ) )
 	{
 		uploaded_paletted = true;
@@ -754,6 +769,7 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 	{
 		qglTexImage2D( GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled );
 	}
+#endif
 
 	if ( mipmap )
 	{
@@ -779,6 +795,9 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 
 			miplevel++;
 
+#if defined(GLES)
+            qglTexImage2D( GL_TEXTURE_2D, miplevel, GL_RGBA, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled );
+#else
 			if ( qglColorTableEXT && gl_ext_palettedtexture->value && ( samples == gl_solid_format ) )
 			{
 				uploaded_paletted = true;
@@ -790,6 +809,7 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 			{
 				qglTexImage2D( GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled );
 			}
+#endif
 		}
 	}
 
@@ -806,10 +826,12 @@ done:
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
 	}
 
+#if !defined(GLES)
 	if (mipmap && gl_config.anisotropic && gl_anisotropic->value)
 	{
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropic->value);
 	}
+#endif
 
 	return ( samples == gl_alpha_format );
 }
@@ -831,6 +853,7 @@ R_Upload8 ( byte *data, int width, int height,  qboolean mipmap, qboolean is_sky
 		ri.Sys_Error( ERR_DROP, "R_Upload8: too large" );
 	}
 
+#if !defined(GLES)
 	if ( qglColorTableEXT &&  gl_ext_palettedtexture->value && is_sky )
 	{
 		qglTexImage2D( GL_TEXTURE_2D,
@@ -849,6 +872,7 @@ R_Upload8 ( byte *data, int width, int height,  qboolean mipmap, qboolean is_sky
 		return ( false ); /* SBF: FIXME - what is the correct return value? */
 	}
 	else
+#endif
 	{
 		for ( i = 0; i < s; i++ )
 		{
@@ -1264,6 +1288,7 @@ R_InitImages ( void )
 
 	Draw_GetPalette();
 
+#if !defined(GLES)
 	if ( qglColorTableEXT )
 	{
 		ri.FS_LoadFile( "pics/16to8.dat", (void **) &gl_state.d_16to8table );
@@ -1273,6 +1298,7 @@ R_InitImages ( void )
 			ri.Sys_Error( ERR_FATAL, "Couldn't load pics/16to8.pcx" );
 		}
 	}
+#endif
 
 	for ( i = 0; i < 256; i++ )
 	{

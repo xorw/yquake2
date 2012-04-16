@@ -79,6 +79,10 @@ R_LerpVerts ( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, f
 void
 R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 {
+#if defined(VERTEX_ARRAYS)
+    uint16_t total;
+    GLenum type;
+#endif
 	float l;
 	daliasframe_t   *frame, *oldframe;
 	dtrivertx_t *v, *ov, *verts;
@@ -170,10 +174,12 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 			}
 		}
 
+#if !defined(VERTEX_ARRAYS)
 		if ( qglLockArraysEXT != 0 )
 		{
 			qglLockArraysEXT( 0, paliashdr->num_xyz );
 		}
+#endif
 
 		while ( 1 )
 		{
@@ -188,12 +194,28 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 			if ( count < 0 )
 			{
 				count = -count;
+#if defined(VERTEX_ARRAYS)
+                type = GL_TRIANGLE_FAN;
+#else
 				qglBegin( GL_TRIANGLE_FAN );
+#endif
 			}
 			else
 			{
+#if defined(VERTEX_ARRAYS)
+                type = GL_TRIANGLE_STRIP;
+#else
 				qglBegin( GL_TRIANGLE_STRIP );
+#endif
 			}
+
+#if defined(VERTEX_ARRAYS)
+            total = count;
+            GLfloat vtx[3*total];
+            GLfloat tex[2*total];
+            uint32_t index_vtx = 0;
+            uint32_t index_tex = 0;
+#endif
 
 			if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM ) )
 			{
@@ -202,7 +224,13 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 					index_xyz = order [ 2 ];
 					order += 3;
 
+#if defined(VERTEX_ARRAYS)
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][0];
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][1];
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][2];
+#else
 					qglVertex3fv( s_lerped [ index_xyz ] );
+#endif
 				}
 				while ( --count );
 			}
@@ -210,6 +238,13 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 			{
 				do
 				{
+#if defined(VERTEX_ARRAYS)
+                    tex[index_tex++] = ( (float *) order ) [ 0 ];
+                    tex[index_tex++] = ( (float *) order ) [ 1 ];
+					index_xyz = order [ 2 ];
+
+					order += 3;
+#else
 					/* texture coordinates come from the draw list */
 					qglTexCoord2f( ( (float *) order ) [ 0 ], ( (float *) order ) [ 1 ] );
 					index_xyz = order [ 2 ];
@@ -217,17 +252,28 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 					order += 3;
 
 					qglArrayElement( index_xyz );
+#endif
 				}
 				while ( --count );
 			}
 
-			qglEnd();
-		}
+#if defined(VERTEX_ARRAYS)
+            qglEnableClientState( GL_VERTEX_ARRAY );
 
+            qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+            qglDrawArrays( type, 0, total );
+
+            qglDisableClientState( GL_VERTEX_ARRAY );
+#else
+			qglEnd();
+#endif
+		}
+#if !defined(VERTEX_ARRAYS)
 		if ( qglUnlockArraysEXT != 0 )
 		{
 			qglUnlockArraysEXT();
 		}
+#endif
 	}
 	else
 	{
@@ -244,12 +290,30 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 			if ( count < 0 )
 			{
 				count = -count;
+#if defined(VERTEX_ARRAYS)
+                type = GL_TRIANGLE_FAN;
+#else
 				qglBegin( GL_TRIANGLE_FAN );
+#endif
 			}
 			else
 			{
+#if defined(VERTEX_ARRAYS)
+                type = GL_TRIANGLE_STRIP;
+#else
 				qglBegin( GL_TRIANGLE_STRIP );
+#endif
 			}
+
+#if defined(VERTEX_ARRAYS)
+            total = count;
+            GLfloat vtx[3*total];
+            GLfloat tex[2*total];
+            GLfloat clr[4*total];
+            uint32_t index_vtx = 0;
+            uint32_t index_tex = 0;
+            uint32_t index_clr = 0;
+#endif
 
 			if ( currententity->flags & ( RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE ) )
 			{
@@ -258,8 +322,19 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 					index_xyz = order [ 2 ];
 					order += 3;
 
+#if defined(VERTEX_ARRAYS)
+                    clr[index_clr++] = shadelight [ 0 ];
+                    clr[index_clr++] = shadelight [ 1 ];
+                    clr[index_clr++] = shadelight [ 2 ];
+                    clr[index_clr++] = alpha;
+
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 0 ];
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 1 ];
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 2 ];
+#else
 					qglColor4f( shadelight [ 0 ], shadelight [ 1 ], shadelight [ 2 ], alpha );
 					qglVertex3fv( s_lerped [ index_xyz ] );
+#endif
 				}
 				while ( --count );
 			}
@@ -268,20 +343,51 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 				do
 				{
 					/* texture coordinates come from the draw list */
+#if defined(VERTEX_ARRAYS)
+                    tex[index_tex++] = ( (float *) order ) [ 0 ];
+                    tex[index_tex++] = ( (float *) order ) [ 1 ];
+#else
 					qglTexCoord2f( ( (float *) order ) [ 0 ], ( (float *) order ) [ 1 ] );
+#endif
 					index_xyz = order [ 2 ];
 					order += 3;
 
 					/* normals and vertexes come from the frame list */
 					l = shadedots [ verts [ index_xyz ].lightnormalindex ];
 
+#if defined(VERTEX_ARRAYS)
+                    clr[index_clr++] = l * shadelight [ 0 ];
+                    clr[index_clr++] = l * shadelight [ 1 ];
+                    clr[index_clr++] = l * shadelight [ 2 ];
+                    clr[index_clr++] = alpha;
+
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 0 ];
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 1 ];
+                    vtx[index_vtx++] = s_lerped [ index_xyz ][ 2 ];
+#else
 					qglColor4f( l * shadelight [ 0 ], l * shadelight [ 1 ], l * shadelight [ 2 ], alpha );
 					qglVertex3fv( s_lerped [ index_xyz ] );
+#endif
 				}
 				while ( --count );
 			}
 
+#if defined(VERTEX_ARRAYS)
+            qglEnableClientState( GL_VERTEX_ARRAY );
+            qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+            qglEnableClientState( GL_COLOR_ARRAY );
+
+            qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+            qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+            qglColorPointer( 4, GL_FLOAT, 0, clr );
+            qglDrawArrays( type, 0, total );
+
+            qglDisableClientState( GL_VERTEX_ARRAY );
+            qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+            qglDisableClientState( GL_COLOR_ARRAY );
+#else
 			qglEnd();
+#endif
 		}
 	}
 
@@ -294,6 +400,10 @@ R_DrawAliasFrameLerp ( dmdl_t *paliashdr, float backlerp )
 void
 R_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
 {
+#if defined(VERTEX_ARRAYS)
+    uint16_t total;
+    GLenum type;
+#endif
 	int     *order;
 	vec3_t point;
 	float height, lheight;
@@ -325,12 +435,26 @@ R_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
 		if ( count < 0 )
 		{
 			count = -count;
+#if defined(VERTEX_ARRAYS)
+            type = GL_TRIANGLE_FAN;
+#else
 			qglBegin( GL_TRIANGLE_FAN );
+#endif
 		}
 		else
 		{
+#if defined(VERTEX_ARRAYS)
+            type = GL_TRIANGLE_STRIP;
+#else
 			qglBegin( GL_TRIANGLE_STRIP );
+#endif
 		}
+
+#if defined(VERTEX_ARRAYS)
+        total = count;
+        GLfloat vtx[3*total];
+        uint32_t index_vtx = 0;
+#endif
 
 		do
 		{
@@ -340,13 +464,29 @@ R_DrawAliasShadow ( dmdl_t *paliashdr, int posenum )
 			point [ 0 ] -= shadevector [ 0 ] * ( point [ 2 ] + lheight );
 			point [ 1 ] -= shadevector [ 1 ] * ( point [ 2 ] + lheight );
 			point [ 2 ] = height;
+
+#if defined(VERTEX_ARRAYS)
+            vtx[index_vtx++] = point [ 0 ];
+            vtx[index_vtx++] = point [ 1 ];
+            vtx[index_vtx++] = point [ 2 ];
+#else
 			qglVertex3fv( point );
+#endif
 
 			order += 3;
 		}
 		while ( --count );
 
+#if defined(VERTEX_ARRAYS)
+        qglEnableClientState( GL_VERTEX_ARRAY );
+
+        qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+        qglDrawArrays( type, 0, total );
+
+        qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 		qglEnd();
+#endif
 	}
 
 	/* stencilbuffer shadows */
@@ -794,7 +934,7 @@ R_DrawAliasModel ( entity_t *e )
 
 		qglDisable( GL_TEXTURE_2D );
 		qglEnable( GL_BLEND );
-		qglColor4f( 0, 0, 0, 0.5 );
+		qglColor4f( 0, 0, 0, 0.5f );
 		R_DrawAliasShadow( paliashdr, currententity->frame );
 		qglEnable( GL_TEXTURE_2D );
 		qglDisable( GL_BLEND );

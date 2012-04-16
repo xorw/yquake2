@@ -172,7 +172,9 @@ R_SetDefaultState ( void )
 
 	qglColor4f( 1, 1, 1, 1 );
 
+#if !defined(GLES)
 	qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+#endif
 	qglShadeModel( GL_FLAT );
 
 	R_TextureMode( gl_texturemode->string );
@@ -207,12 +209,14 @@ R_SetDefaultState ( void )
 		qglPointParameterfvEXT( GL_DISTANCE_ATTENUATION_EXT, attenuations );
 	}
 
+#if !defined(GLES)
 	if ( qglColorTableEXT && gl_ext_palettedtexture->value )
 	{
 		qglEnable( GL_SHARED_TEXTURE_PALETTE_EXT );
 
 		R_SetTexturePalette( d_8to24table );
 	}
+#endif
 
 	R_UpdateSwapInterval();
 }

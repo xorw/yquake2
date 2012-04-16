@@ -25,8 +25,19 @@
  * =======================================================================
  */
 
+#if !defined(USE_EGL_RAW)
 #include <SDL.h>
+#endif
+
+#if defined(GLES)
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
+#if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
+#include "../egl/eglport.h"
+#endif
 
 #include "../refresh/header/local.h"
 #include "../unix/header/glwindow.h"
@@ -34,6 +45,7 @@
 /* The window icon */
 #include "icon/q2icon.xbm"
 
+#if !defined(USE_EGL_RAW)
 /* X.org stuff */
 #include <X11/Xos.h>
 #include <X11/Xlib.h>
@@ -51,24 +63,31 @@ int screen = -1;
 Display *dpy;
 XF86VidModeGamma x11_oldgamma;
 #endif
+#endif
 
 /*
  * Initialzes the SDL OpenGL context
  */
 int GLimp_Init(void)
 {
+#if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
+	EGL_Open();
+#endif 
+
+#if !defined(USE_EGL_RAW)
 	if (!SDL_WasInit(SDL_INIT_VIDEO))
-    {
+	{
 		char driverName[ 64 ];
 
-        if (SDL_Init(SDL_INIT_VIDEO) == -1)
-        {
+		if (SDL_Init(SDL_INIT_VIDEO) == -1)
+		{
 			ri.Con_Printf( PRINT_ALL, "Couldn't init SDL video: %s.\n", SDL_GetError());
-            return false;
-        }
+			return false;
+		}
 		SDL_VideoDriverName( driverName, sizeof( driverName ) - 1 );
-        ri.Con_Printf( PRINT_ALL, "SDL video driver is \"%s\".\n", driverName );
+		ri.Con_Printf( PRINT_ALL, "SDL video driver is \"%s\".\n", driverName );
 	}
+#endif
 
 	return true;
 }
@@ -78,6 +97,7 @@ int GLimp_Init(void)
  */
 static void SetSDLIcon()
 {
+#if !defined(USE_EGL_RAW)
 	SDL_Surface *icon;
 	SDL_Color	color;
 	Uint8		*ptr;
@@ -117,15 +137,17 @@ static void SetSDLIcon()
 
 	SDL_WM_SetIcon(icon, NULL);
 	SDL_FreeSurface(icon);
+#endif
 }
 
 /*
  * Sets the hardware gamma
  */
 #ifdef X11GAMMA
-void
+	void
 UpdateHardwareGamma(void)
 {
+#if !defined(PANDORA) && !defined(USE_EGL_RAW)
 	float gamma;
 	XF86VidModeGamma x11_gamma;
 
@@ -139,9 +161,10 @@ UpdateHardwareGamma(void)
 
 	/* This forces X11 to update the gamma tables */
 	XF86VidModeGetGamma(dpy, screen, &x11_gamma);
+#endif
 }
 #else
-void
+	void
 UpdateHardwareGamma(void)
 {
 	float gamma;
@@ -161,6 +184,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	int stencil_bits;
 	char title[24];
 
+#if !defined(USE_EGL_RAW)
 	if (surface && (surface->w == vid.width) && (surface->h == vid.height))
 	{
 		/* Are we running fullscreen? */
@@ -186,9 +210,15 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	{
 		SDL_FreeSurface(surface);
 	}
+#endif
 
 	/* Create the window */
 	ri.Vid_NewWindow (vid.width, vid.height);
+
+#if !defined(USE_EGL_RAW)
+#if defined(USE_EGL_SDL)
+	flags = SDL_SWSURFACE;
+#else 
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -199,6 +229,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 
 	/* Initiate the flags */
 	flags = SDL_OPENGL;
+#endif
 
 	if (fullscreen)
 	{
@@ -207,12 +238,19 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 
 	/* Set the icon */
 	SetSDLIcon();
+#endif
 
+#if defined(USE_EGL_RAW)
+	ri.Cvar_SetValue("gl_mode", 0);
+	ri.Cvar_SetValue("vid_fullscreen", 0);
+	vid.width = 320;
+	vid.height = 240;
+#else 
 	while (1)
 	{
-		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL)
-		{
-		   	if (counter == 1)
+		if ((surface = SDL_SetVideoMode(vid.width, vid.height, 0, flags)) == NULL) 
+		{   
+			if (counter == 1)
 			{
 				Sys_Error(PRINT_ALL, "Failed to revert to gl_mode 4. Exiting...\n");
 				return false;
@@ -235,7 +273,16 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 			break;
 		}
 	}
+#endif
 
+#if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
+	EGL_Init();
+#endif
+
+
+#if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
+	have_stencil = true;
+#else
 	/* Initialize the stencil buffer */
 	if (!SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &stencil_bits))
 	{
@@ -246,7 +293,9 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 			have_stencil = true;
 		}
 	}
+#endif
 
+#if !defined(PANDORA) && !defined(USE_EGL_RAW)
 	/* Initialize hardware gamma */
 #ifdef X11GAMMA
 	if ( ( dpy = XOpenDisplay( displayname ) ) == NULL )
@@ -263,7 +312,7 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 		gl_state.hwgamma = true;
 		vid_gamma->modified = true;
 
-        XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
+		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 
 		ri.Con_Printf(PRINT_ALL, "Using hardware gamma via X11.\n");
 	}
@@ -272,13 +321,16 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	vid_gamma->modified = true;
 	ri.Con_Printf(PRINT_ALL, "Using hardware gamma via SDL.\n");
 #endif
+#endif
 
+#if !defined(USE_EGL_RAW)
 	/* Window title */
 	snprintf(title, sizeof(title), "Yamagi Quake II %4.2f", VERSION);
 	SDL_WM_SetCaption(title, title);
 
 	/* No cursor */
 	SDL_ShowCursor(0);
+#endif
 
 	return true;
 }
@@ -288,7 +340,11 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
  */
 void GLimp_EndFrame (void)
 {
+#if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
+	EGL_SwapBuffers();
+#else
 	SDL_GL_SwapBuffers();
+#endif
 }
 
 /*
@@ -321,6 +377,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
  */
 void GLimp_Shutdown( void )
 {
+#if !defined(USE_EGL_RAW)
 	if (surface)
 	{
 		SDL_FreeSurface(surface);
@@ -336,7 +393,9 @@ void GLimp_Shutdown( void )
 	{
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	}
+#endif
 
+#if !defined(PANDORA) && !defined(USE_EGL_RAW) 
 #ifdef X11GAMMA
 	if (gl_state.hwgamma == true)
 	{
@@ -346,6 +405,11 @@ void GLimp_Shutdown( void )
 		XF86VidModeGetGamma(dpy, screen, &x11_oldgamma);
 	}
 #endif
+#endif
 
 	gl_state.hwgamma = false;
+
+#if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
+	EGL_Close();
+#endif 
 }

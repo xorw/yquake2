@@ -28,12 +28,23 @@
 #define REF_LOCAL_H
 
 #include <stdio.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <math.h>
+#if defined(GLES)
+#include <GLES/gl.h>
+#else
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
+#include <GL/glext.h>
+#endif
 
 #include "../../client/header/ref.h"
+#if defined(QGL_DIRECT_LINK)
+#include "qgl_linked.h"
+#else
 #include "qgl.h"
+#endif
 
 #ifndef GL_COLOR_INDEX8_EXT
  #define GL_COLOR_INDEX8_EXT GL_COLOR_INDEX
@@ -408,7 +419,9 @@ int         GLimp_Init ( void );
 void        GLimp_Shutdown ( void );
 int         GLimp_SetMode ( int *pwidth, int *pheight, int mode, qboolean fullscreen );
 void        GLimp_AppActivate ( qboolean active );
+#if !defined(QGL_DIRECT_LINK)
 void        GLimp_EnableLogging ( qboolean enable );
+#endif
 void        GLimp_LogNewFrame ( void );
 
 #endif

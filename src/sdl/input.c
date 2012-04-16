@@ -30,6 +30,10 @@
 #include "../client/header/keyboard.h"
 #include "../unix/header/unix.h"
 
+#if defined(WIZ) || defined(CAANOO)
+#include "../egl/in_gph.h"
+#endif
+
 #define MOUSE_MAX 3000
 #define MOUSE_MIN 40
 
@@ -54,7 +58,9 @@ int my;
 
 Key_Event_fp_t Key_Event_fp;
 
+#if !defined(USE_EGL_RAW)
 extern SDL_Surface	 *surface;
+#endif
 static in_state_t    *in_state;
 static unsigned char KeyStates[SDLK_LAST];
 static qboolean		 mlooking;
@@ -218,7 +224,7 @@ IN_GetEvent(SDL_Event *event)
 			if ( (KeyStates[SDLK_LALT] || KeyStates[SDLK_RALT]) && (event->key.keysym.sym == SDLK_RETURN) )
 			{
 				cvar_t *fullscreen;
-
+#if !defined(USE_EGL_RAW)
 				SDL_WM_ToggleFullScreen(surface);
 
 				if (surface->flags & SDL_FULLSCREEN)
@@ -232,7 +238,7 @@ IN_GetEvent(SDL_Event *event)
 
 				fullscreen = ri.Cvar_Get( "vid_fullscreen", "0", 0 );
 				fullscreen->modified = false;
-
+#endif
 				break;
 			}
 
@@ -284,10 +290,57 @@ void IN_Update(void)
 
   IN_Update_Flag = 1;
 
-  while (SDL_PollEvent(&event))
-  {
-	  IN_GetEvent(&event);
-  }
+#if defined(WIZ) || defined(CAANOO)
+    uint32_t key;
+    uint8_t update;
+    uint8_t button;
+    uint8_t state;
+    SDLKey keymap;
+
+    GPH_Input();
+
+    for (button=0; button<GPH_MAX_BUTTONS; button++)
+    {
+        keymap = gph_map[button];
+
+        state = GPH_GetButttonState( GPH_BUTTON(button) ) ;
+        if (state == GPH_RELEASED_TO_PRESSED) {
+            KeyStates[keymap] = 1;
+            update = 1;
+            printf( "GPH press %d\n", button );
+        }
+        else
+        if (state == GPH_PRESSED_TO_RELEASED) {
+			if (KeyStates[keymap])
+			{
+                KeyStates[keymap] = 0;
+                update = 1;
+                printf( "GPH release %d\n", button );
+			}
+        }
+        else
+        {
+            update = 0;
+        }
+
+        if (update)
+        {
+            /* Get the pressed key and add it to the key list */
+            key = IN_TranslateSDLtoQ2Key(keymap);
+            if (key)
+            {
+                keyq[keyq_head].key = key;
+                keyq[keyq_head].down = KeyStates[keymap] ? true : false;
+                keyq_head = (keyq_head + 1) & 127;
+            }
+        }
+    }
+#else
+    while (SDL_PollEvent(&event))
+    {
+      IN_GetEvent(&event);
+    }
+#endif
 
   /* Mouse button processing. Button 4
      and 5 are the mousewheel and thus
@@ -373,6 +426,10 @@ void IN_Close(void)
 	keyq_tail = 0;
 
 	memset(keyq, 0, sizeof(keyq));
+
+#if defined(WIZ) || defined(CAANOO)
+    GPH_Close();
+#endif
 }
 
 /*
@@ -462,6 +519,10 @@ IN_BackendInit ( in_state_t *in_state_p )
 
 	windowed_mouse = ri.Cvar_Get ("windowed_mouse", "1", CVAR_USERINFO | CVAR_ARCHIVE);
 	in_grab = ri.Cvar_Get ("in_grab", "2", CVAR_ARCHIVE);
+
+#if defined(WIZ) || defined(CAANOO)
+    GPH_Open();
+#endif
 
 	Com_Printf( "Input initialized.\n" );
 }

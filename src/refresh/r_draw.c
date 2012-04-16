@@ -74,6 +74,30 @@ Draw_Char ( int x, int y, int num )
 
 	R_Bind( draw_chars->texnum );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        x, y,
+        x + 8, y,
+        x + 8, y + 8,
+        x, y + 8
+    };
+    GLfloat tex[] = {
+        fcol, frow,
+        fcol + size, frow,
+        fcol + size, frow + size,
+        fcol, frow + size
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( fcol, frow );
 	qglVertex2f( x, y );
@@ -84,6 +108,7 @@ Draw_Char ( int x, int y, int num )
 	qglTexCoord2f( fcol, frow + size );
 	qglVertex2f( x, y + 8 );
 	qglEnd();
+#endif
 }
 
 image_t *
@@ -141,6 +166,31 @@ Draw_StretchPic ( int x, int y, int w, int h, char *pic )
 	}
 
 	R_Bind( gl->texnum );
+
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        x, y,
+        x + w, y,
+        x + w, y + h,
+        x, y + h
+    };
+    GLfloat tex[] = {
+        gl->sl, gl->tl,
+        gl->sh, gl->tl,
+        gl->sh, gl->th,
+        gl->sl, gl->th
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( gl->sl, gl->tl );
 	qglVertex2f( x, y );
@@ -151,6 +201,7 @@ Draw_StretchPic ( int x, int y, int w, int h, char *pic )
 	qglTexCoord2f( gl->sl, gl->th );
 	qglVertex2f( x, y + h );
 	qglEnd();
+#endif
 }
 
 void
@@ -172,6 +223,31 @@ Draw_Pic ( int x, int y, char *pic )
 	}
 
 	R_Bind( gl->texnum );
+
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        x, y,
+        x + gl->width, y,
+        x + gl->width, y + gl->height,
+        x, y + gl->height
+    };
+    GLfloat tex[] = {
+        gl->sl, gl->tl,
+        gl->sh, gl->tl,
+        gl->sh, gl->th,
+        gl->sl, gl->th
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( gl->sl, gl->tl );
 	qglVertex2f( x, y );
@@ -182,6 +258,7 @@ Draw_Pic ( int x, int y, char *pic )
 	qglTexCoord2f( gl->sl, gl->th );
 	qglVertex2f( x, y + gl->height );
 	qglEnd();
+#endif
 }
 
 /*
@@ -203,6 +280,31 @@ Draw_TileClear ( int x, int y, int w, int h, char *pic )
 	}
 
 	R_Bind( image->texnum );
+
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        x, y,
+        x + w, y,
+        x + w, y + h,
+        x, y + h
+    };
+    GLfloat tex[] = {
+        x / 64.0, y / 64.0,
+        ( x + w ) / 64.0, y / 64.0,
+        ( x + w ) / 64.0, ( y + h ) / 64.0,
+        x / 64.0, ( y + h ) / 64.0
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( x / 64.0, y / 64.0 );
 	qglVertex2f( x, y );
@@ -213,6 +315,7 @@ Draw_TileClear ( int x, int y, int w, int h, char *pic )
 	qglTexCoord2f( x / 64.0, ( y + h ) / 64.0 );
 	qglVertex2f( x, y + h );
 	qglEnd();
+#endif
 }
 
 /*
@@ -235,10 +338,26 @@ Draw_Fill ( int x, int y, int w, int h, int c )
 	qglDisable( GL_TEXTURE_2D );
 
 	color.c = d_8to24table [ c ];
-	qglColor3f( color.v [ 0 ] / 255.0,
-			color.v [ 1 ] / 255.0,
-			color.v [ 2 ] / 255.0 );
+	qglColor4f( color.v [ 0 ] / 255.0,
+                color.v [ 1 ] / 255.0,
+                color.v [ 2 ] / 255.0,
+                1 );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        x, y,
+        x + w, y,
+        x + w, y + h,
+        x, y + h
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 
 	qglVertex2f( x, y );
@@ -247,7 +366,9 @@ Draw_Fill ( int x, int y, int w, int h, int c )
 	qglVertex2f( x, y + h );
 
 	qglEnd();
-	qglColor3f( 1, 1, 1 );
+#endif
+
+	qglColor4f( 1, 1, 1, 1 );
 	qglEnable( GL_TEXTURE_2D );
 }
 
@@ -257,6 +378,22 @@ Draw_FadeScreen ( void )
 	qglEnable( GL_BLEND );
 	qglDisable( GL_TEXTURE_2D );
 	qglColor4f( 0, 0, 0, 0.8 );
+
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        0, 0,
+        vid.width, 0,
+        vid.width, vid.height,
+        0, vid.height
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 
 	qglVertex2f( 0, 0 );
@@ -265,6 +402,8 @@ Draw_FadeScreen ( void )
 	qglVertex2f( 0, vid.height );
 
 	qglEnd();
+#endif
+
 	qglColor4f( 1, 1, 1, 1 );
 	qglEnable( GL_TEXTURE_2D );
 	qglDisable( GL_BLEND );
@@ -298,8 +437,10 @@ Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 
 	t = rows * hscale / 256 - 1.0 / 512.0;
 
+#if !defined(GLES)
 	if ( !qglColorTableEXT )
 	{
+#endif
 		unsigned *dest;
 
 		for ( i = 0; i < trows; i++ )
@@ -323,6 +464,9 @@ Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 			}
 		}
 
+#if defined(GLES)
+		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, image32 );
+#else
 		qglTexImage2D( GL_TEXTURE_2D, 0, gl_tex_solid_format, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, image32 );
 	}
 	else
@@ -359,10 +503,35 @@ Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 				GL_UNSIGNED_BYTE,
 				image8 );
 	}
+#endif
 
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        x, y,
+        x + w, y,
+        x + w, y + h,
+        x, y + h
+    };
+    GLfloat tex[] = {
+        1.0 / 512.0, 1.0 / 512.0,
+        511.0 / 512.0, 1.0 / 512.0,
+        511.0 / 512.0, t,
+        1.0 / 512.0, t
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    qglVertexPointer( 2, GL_FLOAT, 0, vtx );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 	qglTexCoord2f( 1.0 / 512.0, 1.0 / 512.0 );
 	qglVertex2f( x, y );
@@ -373,6 +542,7 @@ Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 	qglTexCoord2f( 1.0 / 512.0, t );
 	qglVertex2f( x, y + h );
 	qglEnd();
+#endif
 }
 
 int

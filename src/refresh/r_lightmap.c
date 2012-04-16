@@ -78,6 +78,9 @@ LM_UploadBlock ( qboolean dynamic )
 	}
 	else
 	{
+#if defined(GLES)
+        gl_lms.internal_format = GL_LIGHTMAP_FORMAT;
+#endif
 		qglTexImage2D( GL_TEXTURE_2D,
 				0,
 				gl_lms.internal_format,
@@ -276,7 +279,11 @@ LM_BeginBuildingLightmaps ( model_t *m )
 	}
 
 	gl_lms.current_lightmap_texture = 1;
+#if defined(GLES)
+	gl_lms.internal_format = GL_LIGHTMAP_FORMAT;
+#else
 	gl_lms.internal_format = gl_tex_solid_format;
+#endif
 
 	/* initialize the dynamic lightmap texture */
 	R_Bind( gl_state.lightmap_textures + 0 );
