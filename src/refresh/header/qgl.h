@@ -27,11 +27,115 @@
 #ifndef REF_QGL_H
 #define REF_QGL_H
 
+#if defined(GLES)
+#include <GLES/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 #ifndef APIENTRY
  #define APIENTRY
 #endif
+
+qboolean QGL_Init ( const char *dllname );
+void     QGL_Shutdown ( void );
+
+#if defined(GLES)
+
+#if defined(GLES_ONLY)
+#define GLdouble GLfloat
+#define GLclampd GLclampf
+#else
+typedef double GLdouble;	/* double precision float */
+typedef double GLclampd;	/* double precision float in [0,1] */
+#endif
+
+/*
+#define GL_COMBINE_EXT		    GL_COMBINE
+#define GL_COMBINE_RGB_EXT	    GL_COMBINE_RGB
+#define GL_COMBINE_ALPHA_EXT	GL_COMBINE_ALPHA
+#define GL_SOURCE0_ALPHA_EXT	GL_SRC0_ALPHA
+#define GL_SOURCE1_ALPHA_EXT	GL_SRC1_ALPHA
+#define GL_SOURCE0_RGB_EXT	    GL_SRC0_RGB
+#define GL_SOURCE1_RGB_EXT	    GL_SRC1_RGB
+#define GL_PREVIOUS_EXT		    GL_PREVIOUS
+#define GL_RGB_SCALE_EXT	    GL_RGB_SCALE
+
+#define GL_POINT_SIZE_MIN_EXT       GL_POINT_SIZE_MIN
+#define GL_POINT_SIZE_MAX_EXT       GL_POINT_SIZE_MAX
+#define GL_DISTANCE_ATTENUATION_EXT GL_POINT_DISTANCE_ATTENUATION
+
+#define GL_COLOR_INDEX 0
+*/
+extern int QGL_TEXTURE0, QGL_TEXTURE1;
+
+extern void ( APIENTRY *qglEnable )( GLenum cap );
+extern void ( APIENTRY *qglDisable )( GLenum cap );
+extern void ( APIENTRY *qglAlphaFunc )( GLenum func, GLclampf ref );
+extern void ( APIENTRY *qglDepthFunc )( GLenum func );
+extern void ( APIENTRY *qglDepthMask )( GLboolean flag );
+extern void ( APIENTRY *qglDepthRange )( GLclampd zNear, GLclampd zFar );
+extern void ( APIENTRY *qglShadeModel )( GLenum mode );
+extern void ( APIENTRY *qglPointSize )( GLfloat size );
+extern void ( APIENTRY *qglViewport )( GLint x, GLint y, GLsizei width, GLsizei height );
+extern void ( APIENTRY *qglBlendFunc )( GLenum sfactor, GLenum dfactor );
+extern void ( APIENTRY *qglColor4f )( GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha );
+extern void ( APIENTRY *qglCullFace )( GLenum mode );
+extern void ( APIENTRY *qglGetFloatv )( GLenum pname, GLfloat *params );
+extern const GLubyte * ( APIENTRY * qglGetString )(GLenum name);
+extern GLenum ( APIENTRY *qglGetError )( void );
+extern void ( APIENTRY *qglClearStencil )( GLint s );
+extern void ( APIENTRY *qglStencilFunc )( GLenum func, GLint ref, GLuint mask );
+extern void ( APIENTRY *qglStencilOp )( GLenum fail, GLenum zfail, GLenum zpass );
+extern void ( APIENTRY *qglFinish )( void );
+extern void ( APIENTRY *qglClear )( GLbitfield mask );
+extern void ( APIENTRY *qglClearColor )( GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha );
+
+extern void ( APIENTRY *qglTexImage2D )( GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height,
+		GLint border, GLenum format, GLenum type, const GLvoid *pixels );
+extern void ( APIENTRY *qglTexSubImage2D )( GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width,
+		GLsizei height, GLenum format, GLenum type, const GLvoid *pixels );
+extern void ( APIENTRY *qglTexParameterf )( GLenum target, GLenum pname, GLfloat param );
+extern void ( APIENTRY *qglTexEnvi )( GLenum target, GLenum pname, GLint param );
+extern void ( APIENTRY *qglTexEnvf )( GLenum target, GLenum pname, GLfloat param );
+extern void ( APIENTRY *qglBindTexture )( GLenum target, GLuint texture );
+extern void ( APIENTRY *qglDeleteTextures )( GLsizei n, const GLuint *textures );
+
+extern void ( APIENTRY *qglEnableClientState )( GLenum array );
+extern void ( APIENTRY *qglDisableClientState )( GLenum array );
+extern void ( APIENTRY *qglVertexPointer )( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+extern void ( APIENTRY *qglTexCoordPointer )( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+extern void ( APIENTRY *qglColorPointer )( GLint size, GLenum type, GLsizei stride, const GLvoid *pointer );
+extern void ( APIENTRY *qglDrawArrays )( GLenum mode, GLint first, GLsizei count );
+
+extern void ( APIENTRY *qglTranslatef )( GLfloat x, GLfloat y, GLfloat z );
+extern void ( APIENTRY *qglRotatef )( GLfloat angle, GLfloat x, GLfloat y, GLfloat z );
+extern void ( APIENTRY *qglScalef )( GLfloat x, GLfloat y, GLfloat z );
+extern void ( APIENTRY *qglPushMatrix )( void );
+extern void ( APIENTRY *qglPopMatrix )( void );
+extern void ( APIENTRY *qglLoadIdentity )( void );
+extern void ( APIENTRY *qglMatrixMode )( GLenum mode );
+extern void ( APIENTRY *qglLoadMatrixf )( const GLfloat *m );
+
+extern void ( APIENTRY *qglScissor )( GLint x, GLint y, GLsizei width, GLsizei height );
+extern void ( APIENTRY *qglReadPixels )( GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type,
+		GLvoid *pixels );
+
+extern void ( APIENTRY *qglFrustum )( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar );
+extern void ( APIENTRY *qglOrtho )( GLdouble left, GLdouble right, GLdouble bottom, GLdouble top, GLdouble zNear, GLdouble zFar );
+
+extern void ( APIENTRY *qglActiveTextureARB )( GLenum texture );
+extern void ( APIENTRY *qglClientActiveTextureARB )( GLenum texture );
+
+extern void ( APIENTRY *qglPointParameterfEXT )( GLenum param, GLfloat value );
+extern void ( APIENTRY *qglPointParameterfvEXT )( GLenum param, const GLfloat *value );
+
+// Dont Cares
+extern void ( APIENTRY *qglSelectTextureSGIS )( GLenum );
+extern void ( APIENTRY *qglMTexCoord2fSGIS )( GLenum, GLfloat, GLfloat );
+extern void ( APIENTRY *qglColorTableEXT )( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * );
+
+#else
 
 #define GL_SHARED_TEXTURE_PALETTE_EXT       0x81FB
 
@@ -41,9 +145,6 @@
 #define GL_POINT_SIZE_MIN_EXT 0x8126
 #define GL_POINT_SIZE_MAX_EXT 0x8127
 #define GL_DISTANCE_ATTENUATION_EXT 0x8129
-
-qboolean QGL_Init ( const char *dllname );
-void     QGL_Shutdown ( void );
 
 extern void ( APIENTRY *qglAccum )( GLenum op, GLfloat value );
 extern void ( APIENTRY *qglAlphaFunc )( GLenum func, GLclampf ref );
@@ -455,6 +556,8 @@ extern int QGL_TEXTURE0, QGL_TEXTURE1;
  #define GL_OPERAND5_ALPHA_EXT             0x859D
  #define GL_OPERAND6_ALPHA_EXT             0x859E
  #define GL_OPERAND7_ALPHA_EXT             0x859F
+#endif
+
 #endif
 
 #endif

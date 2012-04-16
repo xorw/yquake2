@@ -22,7 +22,7 @@
  * Model loading and caching. Includes the .bsp file format
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/local.h"
 
@@ -97,7 +97,7 @@ Mod_DecompressVis ( byte *in, model_t *model )
 	out = decompressed;
 
 	if ( !in )
-	{   
+	{
 		/* no vis info, so make all visible */
 		while ( row )
 		{
@@ -251,21 +251,31 @@ Mod_ForName ( char *name, qboolean crash )
 
 	loadmodel = mod;
 
+#if defined(WIZ)
+    #define IDALIASHEADER_HUNKMAX 0x100000
+    #define IDSPRITEHEADER_HUNKMAX 0x10000
+    #define IDBSPHEADER_HUNKMAX 0x500000
+#else
+    #define IDALIASHEADER_HUNKMAX 0x200000
+    #define IDSPRITEHEADER_HUNKMAX 0x10000
+    #define IDBSPHEADER_HUNKMAX 0x1000000
+#endif
+
 	/* call the apropriate loader */
 	switch ( LittleLong( *(unsigned *) buf ) )
 	{
 		case IDALIASHEADER:
-			loadmodel->extradata = Hunk_Begin( 0x200000 );
+			loadmodel->extradata = Hunk_Begin( IDALIASHEADER_HUNKMAX );
 			LoadMD2( mod, buf );
 			break;
 
 		case IDSPRITEHEADER:
-			loadmodel->extradata = Hunk_Begin( 0x10000 );
+			loadmodel->extradata = Hunk_Begin( IDSPRITEHEADER_HUNKMAX );
 			LoadSP2( mod, buf );
 			break;
 
 		case IDBSPHEADER:
-			loadmodel->extradata = Hunk_Begin( 0x1000000 );
+			loadmodel->extradata = Hunk_Begin( IDBSPHEADER_HUNKMAX );
 			Mod_LoadBrushModel( mod, buf );
 			break;
 
@@ -382,7 +392,7 @@ Mod_LoadSubmodels ( lump_t *l )
 	for ( i = 0; i < count; i++, in++, out++ )
 	{
 		for ( j = 0; j < 3; j++ )
-		{   
+		{
 			/* spread the mins / maxs by a pixel */
 			out->mins [ j ] = LittleFloat( in->mins [ j ] ) - 1;
 			out->maxs [ j ] = LittleFloat( in->maxs [ j ] ) + 1;
@@ -959,7 +969,7 @@ Mod_FreeAll ( void )
 		}
 	}
 }
- 
+
 /*
  * Specifies the model that will be used as the world
  */
@@ -1049,7 +1059,7 @@ R_EndRegistration ( void )
 		}
 
 		if ( mod->registration_sequence != registration_sequence )
-		{  
+		{
 		   	/* don't need this model */
 			Mod_Free( mod );
 		}
@@ -1057,4 +1067,4 @@ R_EndRegistration ( void )
 
 	R_FreeUnusedImages();
 }
- 
+

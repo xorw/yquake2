@@ -22,18 +22,18 @@
  * Lightmaps and dynamic lighting
  *
  * =======================================================================
- */  
+ */
 
 #include "header/local.h"
 
 #define DLIGHT_CUTOFF   64
- 
+
 int r_dlightframecount;
 vec3_t pointcolor;
 cplane_t *lightplane; /* used as shadow plane */
 vec3_t lightspot;
 static float s_blocklights [ 34 * 34 * 3 ];
-   
+
 void
 R_RenderDlight ( dlight_t *light )
 {
@@ -46,8 +46,50 @@ R_RenderDlight ( dlight_t *light )
 
 	VectorSubtract( light->origin, r_origin, v );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[3*18];
+    GLfloat clr[4*18];
+    uint32_t index_vtx = 4;
+    uint32_t index_clr = 0;
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_COLOR_ARRAY );
+
+    clr[index_clr++] = light->color [ 0 ] * 0.2;
+	clr[index_clr++] = light->color [ 1 ] * 0.2;
+	clr[index_clr++] = light->color [ 2 ] * 0.2;
+	clr[index_clr++] = 1;
+
+	for ( i = 0; i < 3; i++ )
+	{
+		vtx [ i ] = light->origin [ i ] - vpn [ i ] * rad;
+	}
+
+	for ( i = 16; i >= 0; i-- )
+	{
+        clr[index_clr++] = 0;
+        clr[index_clr++] = 0;
+        clr[index_clr++] = 0;
+        clr[index_clr++] = 1;
+
+		a = i / 16.0 * M_PI * 2;
+
+		for ( j = 0; j < 3; j++ )
+		{
+            vtx[index_vtx++] = light->origin [ j ] + vright [ j ] * cos( a ) * rad
+                                + vup [ j ] * sin( a ) * rad;
+		}
+	}
+
+    qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+    qglColorPointer( 4, GL_FLOAT, 0, clr );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 18 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_COLOR_ARRAY );
+#else
 	qglBegin( GL_TRIANGLE_FAN );
-	qglColor3f( light->color [ 0 ] * 0.2, light->color [ 1 ] * 0.2, light->color [ 2 ] * 0.2 );
+	qglColor4f( light->color [ 0 ] * 0.2, light->color [ 1 ] * 0.2, light->color [ 2 ] * 0.2, 1 );
 
 	for ( i = 0; i < 3; i++ )
 	{
@@ -55,7 +97,7 @@ R_RenderDlight ( dlight_t *light )
 	}
 
 	qglVertex3fv( v );
-	qglColor3f( 0, 0, 0 );
+	qglColor4f( 0, 0, 0, 1 );
 
 	for ( i = 16; i >= 0; i-- )
 	{
@@ -71,6 +113,7 @@ R_RenderDlight ( dlight_t *light )
 	}
 
 	qglEnd();
+#endif
 }
 
 void
@@ -86,7 +129,7 @@ R_RenderDlights ( void )
 
 	/* because the count hasn't advanced yet for this frame */
 	r_dlightframecount = r_framecount + 1;
-	
+
 	qglDepthMask( 0 );
 	qglDisable( GL_TEXTURE_2D );
 	qglShadeModel( GL_SMOOTH );
@@ -100,7 +143,7 @@ R_RenderDlights ( void )
 		R_RenderDlight( l );
 	}
 
-	qglColor3f( 1, 1, 1 );
+	qglColor4f( 1, 1, 1, 1 );
 	qglDisable( GL_BLEND );
 	qglEnable( GL_TEXTURE_2D );
 	qglBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -177,8 +220,8 @@ R_PushDlights ( void )
 	}
 
 	/* because the count hasn't advanced yet for this frame */
-	r_dlightframecount = r_framecount + 1; 
-	
+	r_dlightframecount = r_framecount + 1;
+
 	l = r_newrefdef.dlights;
 
 	for ( i = 0; i < r_newrefdef.num_dlights; i++, l++ )

@@ -1223,7 +1223,11 @@ void
 FS_AddHomeAsGameDirectory(char *dir)
 {
 	char gdir[MAX_OSPATH];
+#if defined(PANDORA) || defined(WIZ) || defined(CAANOO)
+	char *homedir=getenv("PWD");
+#else
 	char *homedir=getenv("HOME");
+#endif
 
 	if(homedir)
 	{
@@ -1243,20 +1247,20 @@ FS_AddHomeAsGameDirectory(char *dir)
 
 #ifdef SYSTEMWIDE
 
-void FS_AddSystemwideGameDirectory(char *dir) 
-{ 
-    char gdir[MAX_OSPATH]; 
-    char *datadir = SYSTEMDIR; 
-	int len = snprintf(gdir, sizeof(gdir), "%s/%s/", datadir, dir); 
+void FS_AddSystemwideGameDirectory(char *dir)
+{
+    char gdir[MAX_OSPATH];
+    char *datadir = SYSTEMDIR;
+	int len = snprintf(gdir, sizeof(gdir), "%s/%s/", datadir, dir);
 
-    printf("Using %s to fetch paks\n", gdir); 
- 
-	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/')) 
+    printf("Using %s to fetch paks\n", gdir);
+
+	if ((len > 0) && (len < sizeof(gdir)) && (gdir[len-1] == '/'))
 	{
-           gdir[len-1] = 0; 
+           gdir[len-1] = 0;
 	}
-         
-	FS_AddGameDirectory (gdir); 
+
+	FS_AddGameDirectory (gdir);
 }
 
 #endif

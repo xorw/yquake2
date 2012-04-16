@@ -297,6 +297,34 @@ R_EmitWaterPolys ( msurface_t *fa )
 	{
 		p = bp;
 
+#if defined(VERTEX_ARRAYS)
+        GLfloat tex[2*p->numverts];
+        uint32_t index_tex = 0;
+
+		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
+		{
+			os = v [ 3 ];
+			ot = v [ 4 ];
+
+			s = os + r_turbsin [ (int) ( ( ot * 0.125 + r_newrefdef.time ) * TURBSCALE ) & 255 ];
+			s += scroll;
+			tex[index_tex++] = s * ( 1.0 / 64 );
+
+			t = ot + r_turbsin [ (int) ( ( os * 0.125 + rdt ) * TURBSCALE ) & 255 ];
+			tex[index_tex++] = t * ( 1.0 / 64 );
+		}
+		v = p->verts [ 0 ];
+
+        qglEnableClientState( GL_VERTEX_ARRAY );
+        qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+        qglVertexPointer( 3, GL_FLOAT, VERTEXSIZE*sizeof(GLfloat), v );
+        qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+        qglDrawArrays( GL_TRIANGLE_FAN, 0, p->numverts );
+
+        qglDisableClientState( GL_VERTEX_ARRAY );
+        qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 		qglBegin( GL_TRIANGLE_FAN );
 
 		for ( i = 0, v = p->verts [ 0 ]; i < p->numverts; i++, v += VERTEXSIZE )
@@ -316,6 +344,7 @@ R_EmitWaterPolys ( msurface_t *fa )
 		}
 
 		qglEnd();
+#endif
 	}
 }
 
@@ -576,6 +605,13 @@ R_ClearSkyBox ( void )
 	}
 }
 
+#if defined(VERTEX_ARRAYS)
+GLfloat vtx_sky[12];
+GLfloat tex_sky[8];
+uint32_t index_vtx = 0;
+uint32_t index_tex = 0;
+#endif
+
 void
 R_MakeSkyVec ( float s, float t, int axis )
 {
@@ -630,8 +666,18 @@ R_MakeSkyVec ( float s, float t, int axis )
 	}
 
 	t = 1.0 - t;
+
+#if defined(VERTEX_ARRAYS)
+    tex_sky[index_tex++] = s;
+    tex_sky[index_tex++] = t;
+
+    vtx_sky[index_vtx++] = v[ 0 ];
+    vtx_sky[index_vtx++] = v[ 1 ];
+    vtx_sky[index_vtx++] = v[ 2 ];
+#else
 	qglTexCoord2f( s, t );
 	qglVertex3fv( v );
+#endif
 }
 
 void
@@ -678,12 +724,34 @@ R_DrawSkyBox ( void )
 
 		R_Bind( sky_images [ skytexorder [ i ] ]->texnum );
 
-		qglBegin( GL_QUADS );
+#if defined(VERTEX_ARRAYS)
+        qglEnableClientState( GL_VERTEX_ARRAY );
+        qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+        index_vtx = 0;
+        index_tex = 0;
+
 		R_MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
 		R_MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
 		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
 		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+
+        qglVertexPointer( 3, GL_FLOAT, 0, vtx_sky );
+        qglTexCoordPointer( 2, GL_FLOAT, 0, tex_sky );
+        qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+        qglDisableClientState( GL_VERTEX_ARRAY );
+        qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
+		qglBegin( GL_QUADS );
+
+		R_MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i );
+		R_MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i );
+
 		qglEnd();
+#endif
 	}
 
 	qglPopMatrix();
@@ -701,11 +769,13 @@ R_SetSky ( char *name, float rotate, vec3_t axis )
 
 	for ( i = 0; i < 6; i++ )
 	{
+#if !defined(GLES)
 		if ( qglColorTableEXT && gl_ext_palettedtexture->value )
 		{
 			Com_sprintf( pathname, sizeof ( pathname ), "env/%s%s.pcx", skyname, suf [ i ] );
 		}
 		else
+#endif
 		{
 			Com_sprintf( pathname, sizeof ( pathname ), "env/%s%s.tga", skyname, suf [ i ] );
 		}

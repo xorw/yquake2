@@ -47,7 +47,16 @@ viddef_t vid;
 
 refimport_t ri;
 
+#if defined(QGL_DIRECT_LINK)
+void ( APIENTRY *qglSelectTextureSGIS )( GLenum ) = NULL;
+void ( APIENTRY *qglMTexCoord2fSGIS )( GLenum, GLfloat, GLfloat ) = NULL;
+void ( APIENTRY *qglColorTableEXT )( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * ) = NULL;
+
+qboolean QGL_Init ( const char *dllname ) { return 1; }
+void QGL_Shutdown ( void ) {}
+#else
 int QGL_TEXTURE0, QGL_TEXTURE1;
+#endif
 
 model_t     *r_worldmodel;
 
@@ -201,7 +210,11 @@ void
 R_DrawSpriteModel ( entity_t *e )
 {
 	float alpha = 1.0F;
+#if defined(VERTEX_ARRAYS)
+    vec3_t point[4];
+#else
 	vec3_t point;
+#endif
 	dsprframe_t *frame;
 	float       *up, *right;
 	dsprite_t       *psprite;
@@ -245,6 +258,36 @@ R_DrawSpriteModel ( entity_t *e )
 		qglDisable( GL_ALPHA_TEST );
 	}
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat tex[] = {
+        0, 1,
+        0, 0,
+        1, 0,
+        1, 1
+    };
+
+	VectorMA( e->origin, -frame->origin_y, up, point[0] );
+	VectorMA( point[0], -frame->origin_x, right, point[0] );
+
+	VectorMA( e->origin, frame->height - frame->origin_y, up, point[1] );
+	VectorMA( point[1], -frame->origin_x, right, point[1] );
+
+	VectorMA( e->origin, frame->height - frame->origin_y, up, point[2] );
+	VectorMA( point[2], frame->width - frame->origin_x, right, point[2] );
+
+	VectorMA( e->origin, -frame->origin_y, up, point[3] );
+	VectorMA( point[3], frame->width - frame->origin_x, right, point[3] );
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+
+    qglVertexPointer( 3, GL_FLOAT, 0, point );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 
 	qglTexCoord2f( 0, 1 );
@@ -268,6 +311,7 @@ R_DrawSpriteModel ( entity_t *e )
 	qglVertex3fv( point );
 
 	qglEnd();
+#endif
 
 	qglDisable( GL_ALPHA_TEST );
 	R_TexEnv( GL_REPLACE );
@@ -299,8 +343,25 @@ R_DrawNullModel ( void )
 	R_RotateForEntity( currententity );
 
 	qglDisable( GL_TEXTURE_2D );
-	qglColor3fv( shadelight );
+    qglColor4f( shadelight[0], shadelight[1], shadelight[2], 1 );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtxA[] = {
+        0, 0, -16,
+        16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0,
+        16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
+        16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
+        16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
+        16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+
+    qglVertexPointer( 3, GL_FLOAT, 0, vtxA );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 	qglBegin( GL_TRIANGLE_FAN );
 	qglVertex3f( 0, 0, -16 );
 
@@ -310,7 +371,25 @@ R_DrawNullModel ( void )
 	}
 
 	qglEnd();
+#endif
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtxB[] = {
+        0, 0, 16,
+        16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0,
+        16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0,
+        16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0,
+        16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0,
+        16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+
+    qglVertexPointer( 3, GL_FLOAT, 0, vtxB );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 6 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 	qglBegin( GL_TRIANGLE_FAN );
 	qglVertex3f( 0, 0, 16 );
 
@@ -320,8 +399,9 @@ R_DrawNullModel ( void )
 	}
 
 	qglEnd();
+#endif
 
-	qglColor3f( 1, 1, 1 );
+	qglColor4f( 1, 1, 1, 1 );
 	qglPopMatrix();
 	qglEnable( GL_TEXTURE_2D );
 }
@@ -440,6 +520,82 @@ R_DrawParticles2 ( int num_particles, const particle_t particles[], const unsign
 	qglDepthMask( GL_FALSE ); /* no z buffering */
 	qglEnable( GL_BLEND );
 	R_TexEnv( GL_MODULATE );
+
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[3*num_particles*3];
+    GLfloat tex[2*num_particles*3];
+    GLfloat clr[4*num_particles*3];
+    uint32_t index_vtx = 0;
+    uint32_t index_tex = 0;
+    uint32_t index_clr = 0;
+    uint32_t j;
+
+	VectorScale( vup, 1.5, up );
+	VectorScale( vright, 1.5, right );
+
+	for ( p = particles, i = 0; i < num_particles; i++, p++ )
+	{
+		/* hack a scale up to keep particles from disapearing */
+		scale = ( p->origin [ 0 ] - r_origin [ 0 ] ) * vpn [ 0 ] +
+				( p->origin [ 1 ] - r_origin [ 1 ] ) * vpn [ 1 ] +
+				( p->origin [ 2 ] - r_origin [ 2 ] ) * vpn [ 2 ];
+
+		if ( scale < 20 )
+		{
+			scale = 1;
+		}
+		else
+		{
+			scale = 1 + scale * 0.004;
+		}
+
+		*(int *) color = colortable [ p->color ];
+		for (j=0; j<3; j++) // Copy the color for each point
+        {
+            clr[index_clr++] = color[0]/255.0f;
+            clr[index_clr++] = color[1]/255.0f;
+            clr[index_clr++] = color[2]/255.0f;
+            clr[index_clr++] = p->alpha;
+        }
+
+        // point 0
+        tex[index_tex++] = 0.0625f;
+        tex[index_tex++] = 0.0625f;
+
+        vtx[index_vtx++] = p->origin[0];
+        vtx[index_vtx++] = p->origin[1];
+        vtx[index_vtx++] = p->origin[2];
+
+        // point 1
+        tex[index_tex++] = 1.0625f;
+        tex[index_tex++] = 0.0625f;
+
+        vtx[index_vtx++] = p->origin [ 0 ] + up [ 0 ] * scale;
+        vtx[index_vtx++] = p->origin [ 1 ] + up [ 1 ] * scale;
+        vtx[index_vtx++] = p->origin [ 2 ] + up [ 2 ] * scale;
+
+        // point 2
+        tex[index_tex++] = 0.0625f;
+        tex[index_tex++] = 1.0625f;
+
+        vtx[index_vtx++] = p->origin [ 0 ] + right [ 0 ] * scale;
+        vtx[index_vtx++] = p->origin [ 1 ] + right [ 1 ] * scale;
+        vtx[index_vtx++] = p->origin [ 2 ] + right [ 2 ] * scale;
+	}
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+    qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
+    qglEnableClientState( GL_COLOR_ARRAY );
+
+    qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+    qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+    qglColorPointer( 4, GL_FLOAT, 0, clr );
+    qglDrawArrays( GL_TRIANGLES, 0, num_particles*3 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+    qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
+    qglDisableClientState( GL_COLOR_ARRAY );
+#else
 	qglBegin( GL_TRIANGLES );
 
 	VectorScale( vup, 1.5, up );
@@ -481,6 +637,8 @@ R_DrawParticles2 ( int num_particles, const particle_t particles[], const unsign
 	}
 
 	qglEnd();
+#endif
+
 	qglDisable( GL_BLEND );
 	qglColor4f( 1, 1, 1, 1 );
 	qglDepthMask( 1 ); /* back to normal Z buffering */
@@ -502,6 +660,35 @@ R_DrawParticles ( void )
 
 		qglPointSize( LittleFloat(gl_particle_size->value) );
 
+#if defined(VERTEX_ARRAYS)
+		GLfloat vtx[3*r_newrefdef.num_particles];
+		GLfloat clr[4*r_newrefdef.num_particles];
+		uint32_t index_vtx = 0;
+		uint32_t index_clr = 0;
+
+		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
+		{
+			*(int *) color = d_8to24table [ p->color & 0xFF ];
+			clr[index_clr++] = color[0]/255.0f;
+			clr[index_clr++] = color[1]/255.0f;
+			clr[index_clr++] = color[2]/255.0f;
+			clr[index_clr++] = p->alpha;
+
+			vtx[index_vtx++] = p->origin[0];
+			vtx[index_vtx++] = p->origin[1];
+			vtx[index_vtx++] = p->origin[2];
+		}
+
+		qglEnableClientState( GL_VERTEX_ARRAY );
+		qglEnableClientState( GL_COLOR_ARRAY );
+
+		qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+		qglColorPointer( 4, GL_FLOAT, 0, clr );
+		qglDrawArrays( GL_POINTS, 0, r_newrefdef.num_particles );
+
+		qglDisableClientState( GL_VERTEX_ARRAY );
+		qglDisableClientState( GL_COLOR_ARRAY );
+#else 
 		qglBegin( GL_POINTS );
 
 		for ( i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++ )
@@ -513,9 +700,10 @@ R_DrawParticles ( void )
 		}
 
 		qglEnd();
+#endif
 
 		qglDisable( GL_BLEND );
-		qglColor4f( 1.0F, 1.0F, 1.0F, 1.0F );
+		qglColor4f( 1, 1, 1, 1 );
 		qglDepthMask( GL_TRUE );
 		qglEnable( GL_TEXTURE_2D );
 	}
@@ -548,15 +736,32 @@ R_PolyBlend ( void )
 	qglRotatef( -90,  1, 0, 0 ); /* put Z going up */
 	qglRotatef( 90,  0, 0, 1 ); /* put Z going up */
 
-	qglColor4fv( v_blend );
+	qglColor4f( v_blend[0], v_blend[1], v_blend[2], v_blend[3] );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[] = {
+        10, 100, 100,
+        10, -100, 100,
+        10, -100, -100,
+        10, 100, -100
+    };
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+
+    qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+    qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 	qglBegin( GL_QUADS );
 
 	qglVertex3f( 10, 100, 100 );
 	qglVertex3f( 10, -100, 100 );
 	qglVertex3f( 10, -100, -100 );
 	qglVertex3f( 10, 100, -100 );
+
 	qglEnd();
+#endif
 
 	qglDisable( GL_BLEND );
 	qglEnable( GL_TEXTURE_2D );
@@ -984,13 +1189,13 @@ R_Register ( void )
 	gl_flashblend = ri.Cvar_Get( "gl_flashblend", "0", 0 );
 	gl_playermip = ri.Cvar_Get( "gl_playermip", "0", 0 );
 	gl_driver = ri.Cvar_Get( "gl_driver", "libGL.so.1", CVAR_ARCHIVE );
+
 	gl_texturemode = ri.Cvar_Get( "gl_texturemode", "GL_LINEAR_MIPMAP_NEAREST", CVAR_ARCHIVE );
 	gl_texturealphamode = ri.Cvar_Get( "gl_texturealphamode", "default", CVAR_ARCHIVE );
 	gl_texturesolidmode = ri.Cvar_Get( "gl_texturesolidmode", "default", CVAR_ARCHIVE );
 	gl_anisotropic = ri.Cvar_Get( "gl_anisotropic", "0", CVAR_ARCHIVE );
 	gl_anisotropic_avail = ri.Cvar_Get( "gl_anisotropic_avail", "0", 0 );
 	gl_lockpvs = ri.Cvar_Get( "gl_lockpvs", "0", 0 );
-
 	gl_vertex_arrays = ri.Cvar_Get( "gl_vertex_arrays", "0", CVAR_ARCHIVE );
 
 	gl_ext_swapinterval = ri.Cvar_Get( "gl_ext_swapinterval", "1", CVAR_ARCHIVE );
@@ -1150,6 +1355,40 @@ R_Init ( void *hinstance, void *hWnd )
 
 	ri.Con_Printf( PRINT_ALL, "\n\nProbing for OpenGL extensions:\n" );
 
+#if defined(GLES) || defined(QGL_DIRECT_LINK)
+    if (gl_ext_palettedtexture->value)
+    {
+        ri.Con_Printf( PRINT_ALL, "...using point parameters\n" );
+    }
+    else
+    {
+        ri.Con_Printf( PRINT_ALL, "...not using point parameters\n" );
+    }
+
+    if (gl_ext_multitexture->value)
+    {
+        qglMTexCoord2fSGIS = 1;
+        ri.Con_Printf( PRINT_ALL, "...using multitexture\n" );
+    }
+    else
+    {
+        qglMTexCoord2fSGIS = 0;
+        ri.Con_Printf( PRINT_ALL, "...not using multitexture\n" );
+    }
+
+    if ( gl_ext_mtexcombine->value )
+    {
+        ri.Con_Printf( PRINT_ALL, "...using texture combine\n" );
+        gl_config.mtexcombine = true;
+    }
+    else
+    {
+        ri.Con_Printf( PRINT_ALL, "...not using texture combine\n" );
+        gl_config.mtexcombine = false;
+    }
+
+    gl_config.anisotropic = false;
+#else
 	/* grab extensions */
 	if ( strstr( gl_config.extensions_string, "GL_EXT_compiled_vertex_array" ) ||
 		 strstr( gl_config.extensions_string, "GL_SGI_compiled_vertex_array" ) )
@@ -1262,7 +1501,7 @@ R_Init ( void *hinstance, void *hWnd )
 		gl_config.anisotropic = false;
 		gl_config.max_anisotropy = 0.0;
 		ri.Cvar_SetValue("gl_anisotropic_avail", 0.0);
-	} 
+	}
 
 	gl_config.mtexcombine = false;
 
@@ -1302,6 +1541,7 @@ R_Init ( void *hinstance, void *hWnd )
 			Com_Printf( "...GL_EXT_texture_env_combine not found\n" );
 		}
 	}
+#endif
 
 	R_SetDefaultState();
 
@@ -1355,11 +1595,13 @@ R_BeginFrame ( float camera_separation )
 		ref->modified = true;
 	}
 
+#if !defined(QGL_DIRECT_LINK)
 	if ( gl_log->modified )
 	{
 		GLimp_EnableLogging( gl_log->value );
 		gl_log->modified = false;
 	}
+#endif
 
 	if ( gl_log->value )
 	{
@@ -1393,7 +1635,7 @@ R_BeginFrame ( float camera_separation )
 	if ( gl_drawbuffer->modified )
 	{
 		gl_drawbuffer->modified = false;
-
+#if !defined(GLES)
 		if ( ( gl_state.camera_separation == 0 ) || !gl_state.stereo_enabled )
 		{
 			if ( Q_stricmp( gl_drawbuffer->string, "GL_FRONT" ) == 0 )
@@ -1405,6 +1647,7 @@ R_BeginFrame ( float camera_separation )
 				qglDrawBuffer( GL_BACK );
 			}
 		}
+#endif
 	}
 
 	/* texturemode stuff */
@@ -1521,6 +1764,38 @@ R_DrawBeam ( entity_t *e )
 
 	qglColor4f( r, g, b, e->alpha );
 
+#if defined(VERTEX_ARRAYS)
+    GLfloat vtx[3*NUM_BEAM_SEGS*4];
+    uint32_t index_vtx = 0;
+    uint32_t pointb;
+
+	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
+	{
+		vtx[index_vtx++] = start_points [ i ][ 0 ];
+		vtx[index_vtx++] = start_points [ i ][ 1 ];
+		vtx[index_vtx++] = start_points [ i ][ 2 ];
+
+		vtx[index_vtx++] = end_points [ i ][ 0 ];
+		vtx[index_vtx++] = end_points [ i ][ 1 ];
+		vtx[index_vtx++] = end_points [ i ][ 2 ];
+
+		pointb = ( i + 1 ) % NUM_BEAM_SEGS;
+		vtx[index_vtx++] = start_points [ pointb ][ 0 ];
+		vtx[index_vtx++] = start_points [ pointb ][ 1 ];
+		vtx[index_vtx++] = start_points [ pointb ][ 2 ];
+
+		vtx[index_vtx++] = end_points [ pointb ][ 0 ];
+		vtx[index_vtx++] = end_points [ pointb ][ 1 ];
+		vtx[index_vtx++] = end_points [ pointb ][ 2 ];
+	}
+
+    qglEnableClientState( GL_VERTEX_ARRAY );
+
+    qglVertexPointer( 3, GL_FLOAT, 0, vtx );
+    qglDrawArrays( GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS*4 );
+
+    qglDisableClientState( GL_VERTEX_ARRAY );
+#else
 	qglBegin( GL_TRIANGLE_STRIP );
 
 	for ( i = 0; i < NUM_BEAM_SEGS; i++ )
@@ -1532,6 +1807,7 @@ R_DrawBeam ( entity_t *e )
 	}
 
 	qglEnd();
+#endif
 
 	qglEnable( GL_TEXTURE_2D );
 	qglDisable( GL_BLEND );
