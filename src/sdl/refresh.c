@@ -164,13 +164,15 @@ UpdateHardwareGamma(void)
 #endif
 }
 #else
-	void
+void
 UpdateHardwareGamma(void)
 {
+#if !defined(PANDORA) && !defined(USE_EGL_RAW)
 	float gamma;
 
 	gamma = (vid_gamma->value);
 	SDL_SetGamma(gamma, gamma, gamma);
+#endif
 }
 #endif
 
