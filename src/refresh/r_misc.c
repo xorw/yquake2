@@ -191,7 +191,9 @@ R_SetDefaultState ( void )
 
 	R_TexEnv( GL_REPLACE );
 
+#if !defined(QGL_DIRECT_LINK)
 	if ( qglPointParameterfEXT )
+#endif
 	{
 		float attenuations [ 3 ];
 

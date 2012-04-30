@@ -622,7 +622,11 @@ R_DrawTextureChains ( void )
 
 	c_visible_textures = 0;
 
+#if defined(QGL_DIRECT_LINK)
+	if ( qglSelectTextureSGIS )
+#else
 	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
+#endif
 	{
 		for ( i = 0, image = gltextures; i < numgltextures; i++, image++ )
 		{
