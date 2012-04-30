@@ -22,11 +22,11 @@
  * This file implements the low level part of the Hunk_* memory system
  *
  * =======================================================================
- */ 
+ */
 
 
 /* For mremap() - must be before sys/mman.h include! */
-#if defined( __linux__ )
+#if defined( __linux__ ) && ! defined( _GNU_SOURCE )
  #define _GNU_SOURCE
 #endif
 
@@ -35,7 +35,7 @@
 #include <sys/time.h>
 
 #include "../common/header/common.h"
-       
+
 #if defined( __FreeBSD__ )
  #include <machine/param.h>
  #define MAP_ANONYMOUS MAP_ANON
@@ -140,4 +140,3 @@ Hunk_Free ( void *base )
 		}
 	}
 }
-

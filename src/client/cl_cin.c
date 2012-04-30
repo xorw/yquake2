@@ -415,7 +415,7 @@ SCR_RunCinematic(void) {
 }
 
 /*
- * Returns true if a cinematic is active, meaning the 
+ * Returns true if a cinematic is active, meaning the
  * view rendering should be skipped
  */
 qboolean
@@ -451,9 +451,13 @@ SCR_PlayCinematic(char *arg) {
 	byte	*palette;
 	char	name[MAX_OSPATH], *dot;
 
-	/* make sure CD isn't playing music */
+	/* make sure background music is not playing */
+#ifdef CDA
 	CDAudio_Stop();
+#endif
+#ifdef OGG
 	OGG_Stop();
+#endif
 
 	cl.cinematicframe = 0;
 	dot = strstr(arg, ".");
@@ -510,4 +514,3 @@ SCR_PlayCinematic(char *arg) {
 	cin.pic = SCR_ReadNextFrame();
 	cl.cinematictime = Sys_Milliseconds();
 }
-

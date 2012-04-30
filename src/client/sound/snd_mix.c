@@ -116,7 +116,7 @@ S_TransferPaintBuffer ( int endtime )
 		}
 	}
 }
- 
+
 void
 S_PaintChannelFrom8 ( channel_t *ch, sfxcache_t *sc, int count, int offset )
 {
@@ -179,7 +179,7 @@ S_PaintChannelFrom16 ( channel_t *ch, sfxcache_t *sc, int count, int offset )
 
 	ch->pos += count;
 }
- 
+
 void
 S_PaintChannels ( int endtime )
 {
@@ -197,12 +197,6 @@ S_PaintChannels ( int endtime )
 		/* if paintbuffer is smaller than DMA buffer */
 		end = endtime;
 
-		if ( endtime - paintedtime > PAINTBUFFER_SIZE )
-		{
-			end = paintedtime + PAINTBUFFER_SIZE;
-		}
-
-		/* start any playsounds */
 		if ( endtime - paintedtime > PAINTBUFFER_SIZE )
 		{
 			end = paintedtime + PAINTBUFFER_SIZE;
@@ -258,6 +252,7 @@ S_PaintChannels ( int endtime )
 
 			for ( ; i < end; i++ )
 			{
+				// TODO: this could be done with memset
 				paintbuffer [ i - paintedtime ].left = paintbuffer [ i - paintedtime ].right = 0;
 			}
 		}
@@ -265,7 +260,7 @@ S_PaintChannels ( int endtime )
 		/* paint in the channels. */
 		ch = channels;
 
-		for ( i = 0; i < MAX_CHANNELS; i++, ch++ )
+		for ( i = 0; i < s_numchannels; i++, ch++ )
 		{
 			ltime = paintedtime;
 
@@ -364,4 +359,3 @@ S_InitScaletable ( void )
 		}
 	}
 }
-

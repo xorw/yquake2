@@ -443,8 +443,12 @@ void SCR_DrawConsole (void) {
 void SCR_BeginLoadingPlaque (void) {
 	S_StopAllSounds ();
 	cl.sound_prepped = false; /* don't play ambients */
+#ifdef CDA
 	CDAudio_Stop ();
+#endif
+#ifdef OGG
 	OGG_Stop();
+#endif
 
 	if (cls.disable_screen)
 		return;
@@ -1243,4 +1247,3 @@ void SCR_DrawCrosshair (void) {
 	re.DrawPic (scr_vrect.x + ((scr_vrect.width - crosshair_width)>>1)
 	            , scr_vrect.y + ((scr_vrect.height - crosshair_height)>>1), crosshair_pic);
 }
-

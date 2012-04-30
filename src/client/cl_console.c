@@ -359,11 +359,10 @@ void Con_CenteredPrint (char *text) {
 }
 
 /*
- * The input line scrolls horizontally if 
+ * The input line scrolls horizontally if
  * typing goes beyond the right edge
  */
 void Con_DrawInput (void) {
-	int		y;
 	int		i;
 	char	*text;
 
@@ -386,9 +385,6 @@ void Con_DrawInput (void) {
 	/* prestep if horizontally scrolling */
 	if (key_linepos >= con.linewidth)
 		text += 1 + key_linepos - con.linewidth;
-
-	/* draw it */
-	y = con.vislines-16;
 
 	for (i=0 ; i<con.linewidth ; i++)
 		re.DrawChar ( (i+1)<<3, con.vislines - 22, text[i]);
@@ -595,4 +591,3 @@ void Con_DrawConsole (float frac) {
 	/* draw the input prompt, user text, and cursor if desired */
 	Con_DrawInput ();
 }
-

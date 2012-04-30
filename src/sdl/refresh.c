@@ -144,7 +144,7 @@ static void SetSDLIcon()
  * Sets the hardware gamma
  */
 #ifdef X11GAMMA
-	void
+void
 UpdateHardwareGamma(void)
 {
 #if !defined(PANDORA) && !defined(USE_EGL_RAW)

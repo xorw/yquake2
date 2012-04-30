@@ -22,7 +22,7 @@
  * This file implements generic network functions
  *
  * =======================================================================
- */ 
+ */
 
 #include "header/client.h"
 
@@ -61,7 +61,7 @@ void Cmd_ForwardToServer (void)
 		SZ_Print (&cls.netchan.message, Cmd_Args());
 	}
 }
- 
+
 void CL_ForwardToServer_f (void)
 {
 	if (cls.state != ca_connected && cls.state != ca_active)
@@ -291,8 +291,12 @@ void CL_Disconnect (void)
 	cls.connect_time = 0;
 
 	SCR_StopCinematic ();
+#ifdef OGG
 	OGG_Stop();
+#endif
+#ifdef CDA
 	CDAudio_Stop();
+#endif
 
 	if (cls.demorecording)
 		CL_Stop_f ();
@@ -637,4 +641,3 @@ void CL_ReadPackets (void)
 		cl.timeoutcount = 0;
 
 }
-

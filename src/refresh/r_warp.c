@@ -791,4 +791,3 @@ R_SetSky ( char *name, float rotate, vec3_t axis )
 		sky_max = 511.0 / 512;
 	}
 }
-

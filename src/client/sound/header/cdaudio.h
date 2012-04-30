@@ -22,7 +22,9 @@
  * Function prototypes for the Audio-CD playback
  *
  * =======================================================================
- */ 
+ */
+
+#ifdef CDA
 
 #ifndef CL_SOUND_CDAUDIO_H
 #define CL_SOUND_CDAUDIO_H
@@ -36,4 +38,4 @@ void	CDAudio_Activate (qboolean active);
 void    CDAudio_RandomPlay(void);
 
 #endif
-
+#endif

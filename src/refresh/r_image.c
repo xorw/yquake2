@@ -1059,7 +1059,7 @@ R_FindImage ( char *name, imagetype_t type )
 	{
 		return ( NULL );
 	}
-                     
+
 	len = strlen( name );
 
 	/* Remove the extension */
@@ -1093,6 +1093,7 @@ R_FindImage ( char *name, imagetype_t type )
 
 	if ( !strcmp( name + len - 4, ".pcx" ) )
 	{
+#ifdef RETEXTURE
 		if (gl_retexturing->value)
 		{
 			GetPCXInfo( name, &realwidth, &realheight );
@@ -1123,7 +1124,7 @@ R_FindImage ( char *name, imagetype_t type )
 				}
 
 				/* Upload the PCX */
-				image = R_LoadPic( name, pic, width, 0, height, 0, type, 8 ); 
+				image = R_LoadPic( name, pic, width, 0, height, 0, type, 8 );
 			}
 			else
 			{
@@ -1132,6 +1133,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 		}
 		else
+#endif
 		{
 			LoadPCX( name, &pic, &palette, &width, &height );
 
@@ -1145,6 +1147,7 @@ R_FindImage ( char *name, imagetype_t type )
 	}
 	else if ( !strcmp( name + len - 4, ".wal" ) )
 	{
+#ifdef RETEXTURE
 		if (gl_retexturing->value)
 		{
 			/* Get size of the original texture */
@@ -1182,6 +1185,7 @@ R_FindImage ( char *name, imagetype_t type )
 			}
 		}
 		else
+#endif
 		{
 			image = LoadWal( name );
 
@@ -1353,4 +1357,3 @@ R_ShutdownImages ( void )
 		memset( image, 0, sizeof ( *image ) );
 	}
 }
-

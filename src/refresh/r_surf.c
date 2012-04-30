@@ -1494,4 +1494,3 @@ R_MarkLeaves ( void )
 		}
 	}
 }
-

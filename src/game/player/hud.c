@@ -28,12 +28,12 @@
 
 void
 MoveClientToIntermission(edict_t *ent)
-{       
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	if (deathmatch->value || coop->value)
 	{
 		ent->client->showscores = true;
@@ -79,12 +79,12 @@ BeginIntermission(edict_t *targ)
 {
 	int i, n;
 	edict_t *ent, *client;
-         
+
 	if (!targ)
 	{
 		return;
 	}
-     
+
 	if (level.intermissiontime)
 	{
 		return; /* already activated */
@@ -150,7 +150,7 @@ BeginIntermission(edict_t *targ)
 	ent = G_Find(NULL, FOFS(classname), "info_player_intermission");
 
 	if (!ent)
-	{   
+	{
 		/* the map creator forgot to put in an intermission point... */
 		ent = G_Find(NULL, FOFS(classname), "info_player_start");
 
@@ -212,17 +212,16 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 	int sorted[MAX_CLIENTS];
 	int sortedscores[MAX_CLIENTS];
 	int score, total;
-	int picnum;
 	int x, y;
 	gclient_t *cl;
 	edict_t *cl_ent;
 	char *tag;
-             
+
 	if (!ent || !killer)
 	{
 		return;
 	}
-     
+
 	/* sort the clients by score */
 	total = 0;
 
@@ -272,7 +271,6 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 		cl = &game.clients[sorted[i]];
 		cl_ent = g_edicts + 1 + sorted[i];
 
-		picnum = gi.imageindex("i_fixme");
 		x = (i >= 6) ? 160 : 0;
 		y = 32 + 32 * (i % 6);
 
@@ -327,17 +325,17 @@ DeathmatchScoreboardMessage(edict_t *ent, edict_t *killer)
 
 /*
  * Draw instead of help message.
- * Note that it isn't that hard to 
+ * Note that it isn't that hard to
  * overflow the 1400 byte message limit!
  */
 void
 DeathmatchScoreboard(edict_t *ent)
-{                 
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	DeathmatchScoreboardMessage(ent, ent->enemy);
 	gi.unicast(ent, true);
 }
@@ -347,12 +345,12 @@ DeathmatchScoreboard(edict_t *ent)
  */
 void
 Cmd_Score_f(edict_t *ent)
-{                  
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	ent->client->showinventory = false;
 	ent->client->showhelp = false;
 
@@ -379,12 +377,12 @@ HelpComputer(edict_t *ent)
 {
 	char string[1024];
 	char *sk;
-                    
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	if (skill->value == 0)
 	{
 		sk = "easy";
@@ -429,12 +427,12 @@ HelpComputer(edict_t *ent)
  */
 void
 Cmd_Help_f(edict_t *ent)
-{                    
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	/* this is for backwards compatability */
 	if (deathmatch->value)
 	{
@@ -465,12 +463,12 @@ G_SetStats(edict_t *ent)
 	gitem_t *item;
 	int index, cells;
 	int power_armor_type;
-                      
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	cells = 0;
 
 	/* health */
@@ -501,7 +499,7 @@ G_SetStats(edict_t *ent)
 		cells = ent->client->pers.inventory[ITEM_INDEX(FindItem("cells"))];
 
 		if (cells == 0)
-		{   
+		{
 			/* ran out of cells for power armor */
 			ent->flags &= ~FL_POWER_ARMOR;
 			gi.sound(ent, CHAN_ITEM, gi.soundindex(
@@ -513,7 +511,7 @@ G_SetStats(edict_t *ent)
 	index = ArmorIndex(ent);
 
 	if (power_armor_type && (!index || (level.framenum & 8)))
-	{   
+	{
 		/* flash between power armor and other armor icon */
 		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.imageindex("i_powershield");
 		ent->client->ps.stats[STAT_ARMOR] = cells;
@@ -649,12 +647,12 @@ G_CheckChaseStats(edict_t *ent)
 {
 	int i;
 	gclient_t *cl;
-                       
+
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	for (i = 1; i <= maxclients->value; i++)
 	{
 		cl = g_edicts[i].client;
@@ -671,12 +669,12 @@ G_CheckChaseStats(edict_t *ent)
 
 void
 G_SetSpectatorStats(edict_t *ent)
-{                       
+{
 	if (!ent)
 	{
 		return;
 	}
-     
+
 	gclient_t *cl = ent->client;
 
 	if (!cl->chase_target)
@@ -709,4 +707,3 @@ G_SetSpectatorStats(edict_t *ent)
 		cl->ps.stats[STAT_CHASE] = 0;
 	}
 }
-

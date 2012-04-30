@@ -25,6 +25,8 @@
  * =======================================================================
  */
 
+#ifdef CDA
+
 #include <stdio.h>
 #include "SDL.h"
 #include "../client/header/client.h"
@@ -514,3 +516,4 @@ CDAudio_Activate ( qboolean active )
 	}
 }
 
+#endif /* CDA */

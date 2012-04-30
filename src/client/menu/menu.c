@@ -133,16 +133,16 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	if (Cvar_VariableValue ("maxclients") == 1
 	        && Com_ServerState ())
 		Cvar_Set ("paused", "1");
-	
-	/* if this menu is already open (and on top), 
+
+	/* if this menu is already open (and on top),
 	   close it => toggling behaviour */
 	if(m_drawfunc == draw && m_keyfunc == key)
 	{
 		M_PopMenu();
 		return;
 	}
-	
-	/* if this menu is already present, drop back to 
+
+	/* if this menu is already present, drop back to
 	   that level to avoid stacking menus by hotkeys */
 	for (i=0 ; i<m_menudepth ; i++)
 	{
@@ -151,10 +151,10 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 			alreadyPresent = 1;
 			break;
 		}
-	}                                            
-	
+	}
+
 	/* menu was already opened further down the stack */
-	while(alreadyPresent && i <= m_menudepth) { 
+	while(alreadyPresent && i <= m_menudepth) {
 		M_PopMenu(); /* decrements m_menudepth */
 	}
 
@@ -165,7 +165,7 @@ static void M_PushMenu ( void (*draw) (void), const char *(*key) (int) ) {
 	m_layers[m_menudepth].draw = m_drawfunc;
 	m_layers[m_menudepth].key = m_keyfunc;
 	m_menudepth++;
-	
+
 	m_drawfunc = draw;
 	m_keyfunc = key;
 
@@ -998,9 +998,15 @@ static menulist_s		s_options_lookspring_box;
 static menulist_s		s_options_lookstrafe_box;
 static menulist_s		s_options_crosshair_box;
 static menuslider_s		s_options_sfxvolume_slider;
+#ifdef CDA
 static menulist_s		s_options_cdvolume_box;
+#endif
+#if defined(OGG) || defined(CDA)
 static menulist_s       s_options_cdshuffle_box;
+#endif
+#ifdef OGG
 static menulist_s		s_options_oggvolume_box;
+#endif
 static menulist_s		s_options_quality_list;
 static menulist_s		s_options_console_action;
 
@@ -1034,8 +1040,11 @@ static float ClampCvar( float min, float max, float value ) {
 
 static void ControlsSetMenuItemValues( void ) {
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10;
+#ifdef CDA
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
+#endif
 
+#ifdef OGG
 	s_options_oggvolume_box.curvalue 		= Cvar_VariableValue("ogg_enable");
 
 	cvar_t *ogg;
@@ -1043,9 +1052,9 @@ static void ControlsSetMenuItemValues( void ) {
 
 	if(!strcmp(ogg->string, "random"))
 		s_options_cdshuffle_box.curvalue	= 1;
-
 	else
 		s_options_cdshuffle_box.curvalue	= 0;
+#endif
 
 	s_options_quality_list.curvalue			= !Cvar_VariableValue( "s_loadas8bit" );
 	s_options_sensitivity_slider.curvalue	= ( sensitivity->value ) * 2;
@@ -1092,9 +1101,11 @@ static void UpdateVolumeFunc( void *unused ) {
 	Cvar_SetValue( "s_volume", s_options_sfxvolume_slider.curvalue / 10 );
 }
 
+#if defined(OGG) || defined(CDA)
 static void CDShuffleFunc(void *unused) {
 	Cvar_SetValue("cd_shuffle", s_options_cdshuffle_box.curvalue);
 
+#ifdef OGG
 	cvar_t *ogg;
 	ogg = Cvar_Get("ogg_enable", "1", CVAR_ARCHIVE);
 
@@ -1119,14 +1130,21 @@ static void CDShuffleFunc(void *unused) {
 			}
 		}
 	}
+#endif
 }
+#endif
 
+#ifdef CDA
 static void UpdateCDVolumeFunc( void *unused ) {
 	Cvar_SetValue( "cd_nocd", (float)!s_options_cdvolume_box.curvalue );
+#ifdef OGG
 	Cvar_SetValue( "ogg_enable", 0 );
+#endif
 
 	if (s_options_cdvolume_box.curvalue) {
+#ifdef OGG
 		OGG_Shutdown();
+#endif
 		CDAudio_Init();
 
 		if (s_options_cdshuffle_box.curvalue) {
@@ -1140,13 +1158,19 @@ static void UpdateCDVolumeFunc( void *unused ) {
 		CDAudio_Stop();
 	}
 }
+#endif
 
+#ifdef OGG
 static void UpdateOGGVolumeFunc( void *unused ) {
 	Cvar_SetValue( "ogg_enable", (float)s_options_oggvolume_box.curvalue );
+#ifdef CDA
 	Cvar_SetValue( "cd_nocd", 1 );
+#endif
 
 	if (s_options_oggvolume_box.curvalue) {
+#ifdef CDA
 		CDAudio_Stop();
+#endif
 		OGG_Init();
 		OGG_Stop();
 
@@ -1162,6 +1186,7 @@ static void UpdateOGGVolumeFunc( void *unused ) {
 		OGG_Shutdown();
 	}
 }
+#endif
 
 extern void Key_ClearTyping( void );
 static void ConsoleFunc( void *unused ) {
@@ -1187,7 +1212,7 @@ static void UpdateSoundQualityFunc( void *unused ) {
 		Cvar_SetValue( "s_khz", 44 );
 		Cvar_SetValue( "s_loadas8bit", false );
 	}
- 
+
 	M_DrawTextBox( 8, 120 - 48, 36, 3 );
 	M_Print( 16 + 16, 120 - 48 + 8,  "Restarting the sound system. This" );
 	M_Print( 16 + 16, 120 - 48 + 16, "could take up to a minute, so" );
@@ -1200,23 +1225,29 @@ static void UpdateSoundQualityFunc( void *unused ) {
 }
 
 static void Options_MenuInit( void ) {
+#ifdef CDA
 	static const char *cd_music_items[] = {
 		"disabled",
 		"enabled",
 		0
 	};
+#endif
 
+#ifdef OGG
 	static const char *ogg_music_items[] = {
 		"disabled",
 		"enabled",
 		0
 	};
+#endif
 
+#if defined(OGG) || defined(CDA)
 	static const char *cd_shuffle[] = {
 		"disabled",
 		"enabled",
 		0
 	};
+#endif
 
 	static const char *quality_items[] = {
 		"normal", "high", 0
@@ -1250,6 +1281,7 @@ static void Options_MenuInit( void ) {
 	s_options_sfxvolume_slider.maxvalue		= 10;
 	s_options_sfxvolume_slider.curvalue		= Cvar_VariableValue( "s_volume" ) * 10.0f;
 
+#ifdef CDA
 	s_options_cdvolume_box.generic.type	= MTYPE_SPINCONTROL;
 	s_options_cdvolume_box.generic.x		= 0;
 	s_options_cdvolume_box.generic.y		= 10;
@@ -1257,7 +1289,9 @@ static void Options_MenuInit( void ) {
 	s_options_cdvolume_box.generic.callback	= UpdateCDVolumeFunc;
 	s_options_cdvolume_box.itemnames		= cd_music_items;
 	s_options_cdvolume_box.curvalue 		= !Cvar_VariableValue("cd_nocd");
+#endif
 
+#ifdef OGG
 	s_options_oggvolume_box.generic.type	= MTYPE_SPINCONTROL;
 	s_options_oggvolume_box.generic.x		= 0;
 	s_options_oggvolume_box.generic.y		= 20;
@@ -1265,7 +1299,9 @@ static void Options_MenuInit( void ) {
 	s_options_oggvolume_box.generic.callback	= UpdateOGGVolumeFunc;
 	s_options_oggvolume_box.itemnames		= ogg_music_items;
 	s_options_oggvolume_box.curvalue 		= Cvar_VariableValue("ogg_enable");
+#endif
 
+#if defined(OGG) || defined(CDA)
 	s_options_cdshuffle_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_cdshuffle_box.generic.x = 0;
 	s_options_cdshuffle_box.generic.y = 30;
@@ -1273,6 +1309,7 @@ static void Options_MenuInit( void ) {
 	s_options_cdshuffle_box.generic.callback = CDShuffleFunc;
 	s_options_cdshuffle_box.itemnames = cd_shuffle;
 	s_options_cdshuffle_box.curvalue = Cvar_VariableValue("cd_shuffle");;
+#endif
 
 	s_options_quality_list.generic.type	= MTYPE_SPINCONTROL;
 	s_options_quality_list.generic.x		= 0;
@@ -1353,9 +1390,15 @@ static void Options_MenuInit( void ) {
 	ControlsSetMenuItemValues();
 
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_sfxvolume_slider );
+#ifdef CDA
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_cdvolume_box );
+#endif
+#ifdef OGG
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_oggvolume_box );
+#endif
+#if defined(OGG) || defined(CDA)
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_cdshuffle_box );
+#endif
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_quality_list );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_sensitivity_slider );
 	Menu_AddItem( &s_options_menu, ( void * ) &s_options_alwaysrun_box );
@@ -3760,4 +3803,3 @@ void M_Keydown (int key) {
 		if ( ( s = m_keyfunc( key ) ) != 0 )
 			S_StartLocalSound( ( char * ) s );
 }
-

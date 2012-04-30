@@ -502,4 +502,3 @@ Sys_SendKeyEvents ( void )
 	/* grab frame time */
 	sys_frame_time = Sys_Milliseconds();
 }
-

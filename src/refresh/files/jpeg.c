@@ -24,6 +24,8 @@
  * =======================================================================
  */
 
+#ifdef RETEXTURE
+
 #include "../header/local.h"
 #include <jpeglib.h>
 #include <jerror.h>
@@ -169,3 +171,4 @@ LoadJPG(char *origname, byte **pic, int *width, int *height)
 	*pic = rgbadata;
 }
 
+#endif /* RETEXTURE */

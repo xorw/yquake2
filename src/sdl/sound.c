@@ -28,7 +28,7 @@
  * snd_sdl.c.
  *
  * =======================================================================
- */  
+ */
 
 #include <SDL.h>
 #include "../client/header/client.h"
@@ -41,7 +41,7 @@ static int dmasize = 0;
 static dma_t *dmabackend;
 
 /* The callback */
-static void 
+static void
 sdl_audio_callback(void *data, Uint8 *stream, int length)
 {
 	int length1;
@@ -121,7 +121,7 @@ SNDDMA_Init(void)
 			return 0;
 		}
 	}
-	
+
 	if (SDL_AudioDriverName(drivername, sizeof(drivername)) == NULL)
 	{
 		strcpy(drivername, "(UNKNOW)");
@@ -208,6 +208,9 @@ SNDDMA_Init(void)
 	dmasize = (dmabackend->samples * (dmabackend->samplebits / 8));
 	dmabackend->buffer = calloc(1, dmasize);
 
+	s_numchannels = MAX_CHANNELS;
+	S_InitScaletable();
+
 	SDL_PauseAudio(0);
 
 	Com_Printf("SDL audio initialized.\n");
@@ -235,7 +238,7 @@ SNDDMA_Shutdown(void)
     Com_Printf("SDL audio device shut down.\n");
 }
 
-/* 
+/*
  * This sends the sound to the device.
  * In the SDL backend it's useless and
  * only implemented for compatiblity.
@@ -251,4 +254,3 @@ SNDDMA_BeginPainting(void)
 {
 	SDL_LockAudio();
 }
-

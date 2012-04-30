@@ -579,4 +579,3 @@ Draw_GetPalette ( void )
 
 	return ( 0 );
 }
-

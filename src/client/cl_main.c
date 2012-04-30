@@ -16,13 +16,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
- * 
+ *
  * =======================================================================
  *
  * This is the clients main loop as well as some miscelangelous utility
  * and support functions
  *
- * ======================================================================= 
+ * =======================================================================
  */
 
 #include "header/client.h"
@@ -738,7 +738,9 @@ void CL_Frame (int msec)
 
 	/* update audio */
 	S_Update (cl.refdef.vieworg, cl.v_forward, cl.v_right, cl.v_up);
+#ifdef CDA
 	CDAudio_Update();
+#endif
 
 	/* advance local effects for next frame */
 	CL_RunDLights ();
@@ -800,7 +802,9 @@ void CL_Init (void)
 
 	cls.disable_screen = true; /* don't draw yet */
 
+#ifdef CDA
 	CDAudio_Init ();
+#endif
 
 	CL_InitLocal ();
 
@@ -824,9 +828,12 @@ void CL_Shutdown(void)
 
 	CL_WriteConfiguration ();
 
+#ifdef CDA
 	CDAudio_Shutdown ();
+#endif
+#ifdef OGG
 	OGG_Stop();
+#endif
 	S_Shutdown();
 	VID_Shutdown();
 }
-
