@@ -330,7 +330,9 @@ void
 R_DrawNullModel ( void )
 {
 	vec3_t shadelight;
+#if !defined(VERTEX_ARRAYS)
 	int i;
+#endif
 
 	if ( currententity->flags & RF_FULLBRIGHT )
 	{

@@ -68,7 +68,9 @@ R_TextureAnimation ( mtexinfo_t *tex )
 void
 R_DrawGLPoly ( glpoly_t *p )
 {
+#if !defined(VERTEX_ARRAYS)
 	int i;
+#endif
 	float   *v;
 
 	v = p->verts [ 0 ];
@@ -217,7 +219,9 @@ R_DrawGLPolyChain ( glpoly_t *p, float soffset, float toffset )
 		for ( ; p != 0; p = p->chain )
 		{
 			float *v;
+#if !defined(VERTEX_ARRAYS)
 			int j;
+#endif
 
 			v = p->verts [ 0 ];
 
