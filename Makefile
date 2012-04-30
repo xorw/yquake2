@@ -39,6 +39,11 @@ WITH_OPENAL:=yes
 # libjpeg
 WITH_RETEXTURING:=yes
 
+# Enable the vertex array code path in the renderer
+# instead of the classic one. This may not work on
+# very old (older than about 1999) graphic cards!
+WITH_VERTEXARRAYS:=yes
+
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
 # to pkg-config, libX11 and libXxf86vm
@@ -50,6 +55,7 @@ WITH_ZIP:=yes
 
 # Enable systemwide installation of game assets
 WITH_SYSTEMWIDE:=no
+
 # this will set the default SYSTEMDIR, a non-empty string would actually be used
 WITH_SYSTEMDIR:=""
 
@@ -247,6 +253,11 @@ ifeq ($(WITH_RETEXTURING),yes)
 release/ref_gl.so : CFLAGS += -DRETEXTURE
 release/ref_gl.so : LDFLAGS += -ljpeg
 endif
+
+ifeq ($(WITH_VERTEXARRAYS),yes)
+release/ref_gl.so : CFLAGS += -DVERTEX_ARRAYS
+endif
+
 
 # ----------
 
