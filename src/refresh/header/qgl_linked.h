@@ -36,9 +36,6 @@ If you have questions concerning this license or the applicable additional terms
 #if defined(GLES_ONLY)
 #define GLdouble GLfloat
 #define GLclampd GLclampf
-#else
-typedef double GLdouble;	/* double precision float */
-typedef double GLclampd;	/* double precision float in [0,1] */
 #endif
 
 extern void ( APIENTRY *qglSelectTextureSGIS )( GLenum );
