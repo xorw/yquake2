@@ -94,7 +94,7 @@ endif
 #
 # -MMD to generate header dependencies.
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD
+		  -Wall -pipe -g -MMD -DQGL_DIRECT_LINK
 
 # ----------
 

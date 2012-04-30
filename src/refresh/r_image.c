@@ -158,7 +158,11 @@ R_SetTexturePalette ( unsigned palette [ 256 ] )
 void
 R_EnableMultitexture ( qboolean enable )
 {
+#if defined(QGL_DIRECT_LINK)
+	if ( qglSelectTextureSGIS )
+#else
 	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
+#endif
 	{
 		return;
 	}
@@ -185,7 +189,11 @@ R_SelectTexture ( GLenum texture )
 {
 	int tmu;
 
+#if defined(QGL_DIRECT_LINK)
+	if ( qglSelectTextureSGIS )
+#else
 	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
+#endif
 	{
 		return;
 	}
@@ -210,7 +218,11 @@ R_SelectTexture ( GLenum texture )
 	{
 		qglSelectTextureSGIS( texture );
 	}
+#if defined(QGL_DIRECT_LINK)
+	else
+#else
 	else if ( qglActiveTextureARB )
+#endif
 	{
 		qglActiveTextureARB( texture );
 		qglClientActiveTextureARB( texture );

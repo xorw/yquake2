@@ -652,7 +652,11 @@ R_DrawParticles2 ( int num_particles, const particle_t particles[], const unsign
 void
 R_DrawParticles ( void )
 {
+#if defined(QGL_DIRECT_LINK)
+	if ( gl_ext_pointparameters->value )
+#else
 	if ( gl_ext_pointparameters->value && qglPointParameterfEXT )
+#endif
 	{
 		int i;
 		unsigned char color [ 4 ];
@@ -1391,7 +1395,7 @@ R_Init ( void *hinstance, void *hWnd )
 
     if (gl_ext_multitexture->value)
     {
-        qglMTexCoord2fSGIS = 1;
+        qglMTexCoord2fSGIS = (void *)1; // FIXME: This is a very evil hack
         ri.Con_Printf( PRINT_ALL, "...using multitexture\n" );
     }
     else
