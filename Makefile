@@ -39,6 +39,11 @@ WITH_OPENAL:=yes
 # libjpeg
 WITH_RETEXTURING:=yes
 
+# When this option is set, libGL is not loaded at 
+# runtime. This is meant for embedded platforms and
+# shall not be used on "normal" desktop systems!
+WITH_STATICQGL:=no
+
 # Enable the vertex array code path in the renderer
 # instead of the classic one. This may not work on
 # very old (older than about 1999) graphic cards!
@@ -94,7 +99,7 @@ endif
 #
 # -MMD to generate header dependencies.
 CFLAGS := -O2 -fno-strict-aliasing -fomit-frame-pointer \
-		  -Wall -pipe -g -MMD -DQGL_DIRECT_LINK
+		  -Wall -pipe -g -MMD
 
 # ----------
 
@@ -258,6 +263,9 @@ ifeq ($(WITH_VERTEXARRAYS),yes)
 release/ref_gl.so : CFLAGS += -DVERTEX_ARRAYS
 endif
 
+ifeq ($(WITH_STATICQGL),yes)
+release/ref_gl.so : CFLAGS += -DQGL_DIRECT_LINK
+endif
 
 # ----------
 
