@@ -414,7 +414,9 @@ void
 Draw_StretchRaw ( int x, int y, int w, int h, int cols, int rows, byte *data )
 {
 	unsigned image32 [ 256 * 256 ];
+#if !defined(GLES) 
 	unsigned char image8 [ 256 * 256 ];
+#endif
 	int i, j, trows;
 	byte *source;
 	int frac, fracstep;

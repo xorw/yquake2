@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  #define APIENTRY
 #endif
 
-#if defined(GLES_ONLY)
+#if defined(GLES_ONLY) || defined(GLES)
 #define GLdouble GLfloat
 #define GLclampd GLclampf
 #endif

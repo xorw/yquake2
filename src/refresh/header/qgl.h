@@ -50,7 +50,6 @@ typedef double GLdouble;	/* double precision float */
 typedef double GLclampd;	/* double precision float in [0,1] */
 #endif
 
-/*
 #define GL_COMBINE_EXT		    GL_COMBINE
 #define GL_COMBINE_RGB_EXT	    GL_COMBINE_RGB
 #define GL_COMBINE_ALPHA_EXT	GL_COMBINE_ALPHA
@@ -60,13 +59,11 @@ typedef double GLclampd;	/* double precision float in [0,1] */
 #define GL_SOURCE1_RGB_EXT	    GL_SRC1_RGB
 #define GL_PREVIOUS_EXT		    GL_PREVIOUS
 #define GL_RGB_SCALE_EXT	    GL_RGB_SCALE
-
 #define GL_POINT_SIZE_MIN_EXT       GL_POINT_SIZE_MIN
 #define GL_POINT_SIZE_MAX_EXT       GL_POINT_SIZE_MAX
 #define GL_DISTANCE_ATTENUATION_EXT GL_POINT_DISTANCE_ATTENUATION
-
 #define GL_COLOR_INDEX 0
-*/
+
 extern int QGL_TEXTURE0, QGL_TEXTURE1;
 
 extern void ( APIENTRY *qglEnable )( GLenum cap );
