@@ -1309,6 +1309,11 @@ R_Init ( void *hinstance, void *hWnd )
 
 	/* Options */
 	Com_Printf("Refresher build options:\n");
+#if defined(GLES) || defined(GLSES_ONLY)
+	Com_Printf(" + OpenGL ES\n");
+#else
+	Com_Printf(" - OpenGL ES\n");
+#endif
 #ifdef QGL_DIRECT_LINK
 	Com_Printf(" - Dynamic Quake GL\n");
 #else
