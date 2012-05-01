@@ -1309,6 +1309,11 @@ R_Init ( void *hinstance, void *hWnd )
 
 	/* Options */
 	Com_Printf("Refresher build options:\n");
+#ifdef QGL_DIRECT_LINK
+	Com_Printf(" - Dynamic Quake GL\n");
+#else
+	Com_Printf(" + Dynamic Quake GL\n");
+#endif
 #ifdef RETEXTURE
 	Com_Printf(" + Retexturing support\n");
 #else
