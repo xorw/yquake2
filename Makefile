@@ -25,6 +25,10 @@
 # CD playback is supported by SDL.
 WITH_CDA:=yes
 
+# OpenGL ES instead of "normal" OpenGL. This implies
+# WITH_STATICQGL and WITH_VERTEXARRAYS.
+WITH_GLES:=no
+
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
 # used as a substitute of CD audio playback. Adds
 # dependencies to libogg, libvorbis and libvorbisfile.
@@ -42,7 +46,7 @@ WITH_RETEXTURING:=yes
 # When this option is set, libGL is not loaded at 
 # runtime. This is meant for embedded platforms and
 # shall not be used on "normal" desktop systems!
-WITH_STATICQGL:=no
+WITH_STATICQGL:=YES
 
 # Enable the vertex array code path in the renderer
 # instead of the classic one. This may not work on
@@ -267,6 +271,10 @@ ifeq ($(WITH_STATICQGL),yes)
 release/ref_gl.so : CFLAGS += -DQGL_DIRECT_LINK
 endif
 
+ifeq ($(WITH_GLES),yes)
+release/ref_gl.so : CFLAGS += -DQGL_DIRECT_LINK -DGLES -DGLES_ONLY -DVERTEX_ARRAYS
+endif	
+
 # ----------
 
 # The baseq2 game
@@ -481,8 +489,15 @@ OPENGL_OBJS_ = \
 	src/sdl/refresh.o \
     src/common/shared/shared.o \
     src/unix/glob.o \
-	src/unix/hunk.o \
+	src/unix/hunk.o
+
+ifeq ($(WITH_GLES),yes)
+OPENGL_OBJS_ += \
+	src/unix/qgles.o
+else
+OPENGL_OBJS_ += \
 	src/unix/qgl.o
+endif
 
 # ----------
 
