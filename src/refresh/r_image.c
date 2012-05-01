@@ -643,7 +643,9 @@ R_Upload32 ( unsigned *data, int width, int height,  qboolean mipmap )
 {
 	int samples;
 	unsigned scaled [ 256 * 256 ];
+#if !defined(GLES)
 	unsigned char paletted_texture [ 256 * 256 ];
+#endif
 	int scaled_width, scaled_height;
 	int i, c;
 	byte        *scan;
