@@ -19,54 +19,93 @@
 # User configurable options
 # -------------------------
 
+# The default options should be okay for most users!
+# Do not change anything, unless you know what you're
+# doing! Do not complain if using non-default settings
+# break your game!
+
 # Enables CD audio playback. CD audio playback is used
 # for the background music and doesn't add any further
 # dependencies. It should work on all platforms where
 # CD playback is supported by SDL.
-WITH_CDA:=yes
+WITH_CDA := yes
 
 # OpenGL ES instead of "normal" OpenGL. This implies
 # WITH_STATICQGL and WITH_VERTEXARRAYS.
-WITH_GLES:=no
+WITH_GLES := no
 
 # Enables OGG/Vorbis support. OGG/Vorbis files can be
 # used as a substitute of CD audio playback. Adds
 # dependencies to libogg, libvorbis and libvorbisfile.
-WITH_OGG:=yes
+WITH_OGG := yes
 
 # Enables the optional OpenAL sound system.
 # To use it your system needs libopenal.so.1 (we 
 # recommend openal-soft) installed
-WITH_OPENAL:=yes
+WITH_OPENAL := yes
 
 # Enables retexturing support. Adds a dependency to
 # libjpeg
-WITH_RETEXTURING:=yes
+WITH_RETEXTURING := yes
 
 # When this option is set, libGL is not loaded at 
 # runtime. This is meant for embedded platforms and
 # shall not be used on "normal" desktop systems!
-WITH_STATICQGL:=YES
+WITH_STATICQGL := YES
 
 # Enable the vertex array code path in the renderer
 # instead of the classic one. This may not work on
 # very old (older than about 1999) graphic cards!
-WITH_VERTEXARRAYS:=yes
+WITH_VERTEXARRAYS := yes
 
 # Set the gamma via X11 and not via SDL. This works
 # around problems in some SDL version. Adds dependencies
 # to pkg-config, libX11 and libXxf86vm
-WITH_X11GAMMA:=no
+WITH_X11GAMMA := no
 
 # Enables opening of ZIP files (also known as .pk3 packs).
 # Adds a dependency to libz
-WITH_ZIP:=yes
+WITH_ZIP := yes
 
 # Enable systemwide installation of game assets
-WITH_SYSTEMWIDE:=no
+WITH_SYSTEMWIDE := no
 
-# this will set the default SYSTEMDIR, a non-empty string would actually be used
-WITH_SYSTEMDIR:=""
+# This will set the default SYSTEMDIR, a non-empty 
+# string would actually be used
+WITH_SYSTEMDIR := ""
+
+# ------------------------------------------------------ #
+
+# Those a predefined settings for several handheld and 
+# embedded platforms. Enabling one of these (and ONLY 
+# one, more will break the build process!) will select
+# the correct settings (see above) automatically! 
+# DESKTOP USERS DO NOT WANT TO ENABLE ANY OF THESE!
+
+# The OpenPandora handheld console
+PANDORA := no
+
+# The GamePark CAANOO
+CAANOO := no
+
+# The GamePark Wiz
+WIZ := no
+
+# ------------------------------------------------------ #
+
+# Those variables can be filled to configure the build
+# environment. Those are only usefull of the game is
+# cross compiled. All pathes need a terminating slash 
+# (/)!
+
+# The compiler to use
+#CC =
+
+# Path to your dev-kit
+#PREFIX :=
+
+# Path to the toolchain (relativ to PREFIX)
+#TOOLS :=
 
 # ====================================================== #
 #     !!! DO NOT ALTER ANYTHING BELOW THIS LINE !!!      #
@@ -117,15 +156,42 @@ endif
 
 # ----------
 
+# Predefined build profiles
+ifeq ($(PANDORA),yes)
+WITH_GLES = yes
+WITH_STATICQGL = yes
+CFLAGS += -DPANDORA -DUSE_EGL_SDL
+endif
+
+ifeq ($(CAANOO),yes)
+WITH_GLES = yes
+WITH_STATICQGL = yes
+CFLAGS += -DCAANOO -DUSE_EGL_RAW
+endif
+
+ifeq ($(WIZ),yes)
+WITH_GLES = yes
+WITH_STATICQGL = yes
+CFLAGS += -DWIZ -DUSE_EGL_RAW
+endif
+
+# ----------
+
 # Extra CFLAGS for SDL
-SDLCFLAGS := $(shell sdl-config --cflags)
+ifneq ($(PANDORA),yes)
+ifneq ($(CAANOO),yes)
+ifneq ($(WIZ),yes)
+SDLCFLAGS := $(shell $(PREFIX)$(TOOLS)sdl-config --cflags)
+endif
+endif
+endif
 
 # ----------
 
 # Extra CFLAGS for X11
 ifeq ($(WITH_X11GAMMA),yes)
-X11CFLAGS := $(shell pkg-config x11 --cflags)
-X11CFLAGS += $(shell pkg-config xxf86vm --cflags)
+X11CFLAGS := $(shell $(PREFIX)/$(TOOLS)/pkg-config x11 --cflags)
+X11CFLAGS += $(shell $(PREFIX)/$(TOOLS)/pkg-config xxf86vm --cflags)
 else
 X11CFLAGS :=
 endif
@@ -134,7 +200,15 @@ endif
 
 # Base include path.
 ifeq ($(OSTYPE),Linux)
+ifeq ($(PANDORA),yes)
+INCLUDE := -I/usr/include -I$(PREFIX)/usr/include -I$(PREFIX)/usr/include/SDL
+else ifeq ($(CAANOO),yes) 
+INCLUDE := -I/usr/include -I$(PREFIX)/DGE/include -I$(PREFIX)/DGE/include/SDL
+else ifeq ($(WIZ),yes) 
+INCLUDE := -I/usr/include -I$(PREFIX)/include -I$(PREFIX)/include/SDL
+else # Normal Linux
 INCLUDE := -I/usr/include
+endif
 else ifeq ($(OSTYPE),FreeBSD)
 INCLUDE := -I/usr/local/include
 endif
@@ -143,7 +217,15 @@ endif
 
 # Base LDFLAGS.
 ifeq ($(OSTYPE),Linux)
+ifeq ($(PANDORA),yes)
+LDFLAGS := -L$(PREFIX)/usr/lib -lSDL -lts -lm -ldl
+else ifeq ($(CAANOO),yes)
+LDFLAGS := -L$(PREFIX)/DGE/lib/target -lSDL -lm -ldl
+else ifeq ($(WIZ),yes)
+LDFLAGS := -L$(PREFIX)/lib -lSDL -lm -ldl
+else # Normal Linux
 LDFLAGS := -L/usr/lib -lm -ldl
+endif
 else ifeq ($(OSTYPE),FreeBSD)
 LDFLAGS := -L/usr/local/lib -lm
 endif
@@ -151,7 +233,13 @@ endif
 # ----------
 
 # Extra LDFLAGS for SDL
-SDLLDFLAGS := $(shell sdl-config --libs)
+ifneq ($(PANDORA),yes)
+ifneq ($(CAANOO),yes)
+ifneq ($(WIZ),yes) 
+SDLLDFLAGS := $(shell $(PREFIX)$(TOOLS)sdl-config --libs)
+endif
+endif
+endif
 
 # ----------
 
@@ -253,27 +341,27 @@ build/refresher/%.o: %.c
 
 release/ref_gl.so : CFLAGS += -fPIC
 release/ref_gl.so : LDFLAGS += -shared
-
-ifeq ($(WITH_X11GAMMA),yes)
-release/ref_gl.so : CFLAGS += -DX11GAMMA
-endif
-
+ 
+ifeq ($(WITH_GLES),yes)
+release/ref_gl.so : CFLAGS += -DQGL_DIRECT_LINK -DGLES -DGLES_ONLY -DVERTEX_ARRAYS
+endif	
+ 
 ifeq ($(WITH_RETEXTURING),yes)
 release/ref_gl.so : CFLAGS += -DRETEXTURE
 release/ref_gl.so : LDFLAGS += -ljpeg
 endif
-
-ifeq ($(WITH_VERTEXARRAYS),yes)
-release/ref_gl.so : CFLAGS += -DVERTEX_ARRAYS
-endif
-
+  
 ifeq ($(WITH_STATICQGL),yes)
 release/ref_gl.so : CFLAGS += -DQGL_DIRECT_LINK
 endif
-
-ifeq ($(WITH_GLES),yes)
-release/ref_gl.so : CFLAGS += -DQGL_DIRECT_LINK -DGLES -DGLES_ONLY -DVERTEX_ARRAYS
-endif	
+ 
+ifeq ($(WITH_VERTEXARRAYS),yes)
+release/ref_gl.so : CFLAGS += -DVERTEX_ARRAYS
+endif
+ 
+ifeq ($(WITH_X11GAMMA),yes)
+release/ref_gl.so : CFLAGS += -DX11GAMMA
+endif 
 
 # ----------
 
@@ -492,8 +580,19 @@ OPENGL_OBJS_ = \
 	src/unix/hunk.o
 
 ifeq ($(WITH_GLES),yes)
+ifeq ($(PANDOR),yes)
+OPENGL_OBJS_ += \
+	src/egl/eglport.o
+else ifeq ($(CAANOO),yes)
+OPENGL_OBJS_ += \
+	src/egl/eglport.o src/egl/in_gph.o
+else ifeq ($(WIZ),yes)
+OPENGL_OBJS_ += \
+	src/egl/eglport.o src/egl/in_gph.o
+else # Normal OpenGL ES
 OPENGL_OBJS_ += \
 	src/unix/qgles.o
+endif
 else
 OPENGL_OBJS_ += \
 	src/unix/qgl.o
