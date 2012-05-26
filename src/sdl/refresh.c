@@ -281,7 +281,6 @@ static qboolean GLimp_InitGraphics( qboolean fullscreen )
 	EGL_Init();
 #endif
 
-
 #if defined(USE_EGL_SDL) || defined(USE_EGL_RAW)
 	have_stencil = true;
 #else
@@ -415,3 +414,4 @@ void GLimp_Shutdown( void )
 	EGL_Close();
 #endif 
 }
+

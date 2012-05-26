@@ -667,3 +667,4 @@ IN_BackendMove ( usercmd_t *cmd )
 		IN_ClearMouseState();
 	}
 }
+
