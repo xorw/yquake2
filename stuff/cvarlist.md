@@ -1,0 +1,221 @@
+Yamagi Quake II Console Variables
+---------------------------------
+
+- al_device: OpenAL device to use. If not set OpenALs default device is used.
+- allow_download: Allow downloading game data from the server.
+- allow_download_maps: Allow downloading maps from the server.
+- allow_download_models: Allow downloading models from the server.
+- allow_download_players: Allow downloading player models from the server.
+- allow_download_sounds: Allow downloading sounds from the server.
+- basedir: Directory where the game data can be found. If not set the directory containing the binaries is used.
+- bob_pitch:
+- bob_roll:
+- bob_up:
+- cddir: Directory where the CD can be found if the game is only partially installed to the harddrive.
+- cfg_unbindall: If set an 'unbind' command is added to the config file written by Quake II.
+- cheats: Allow cheats in multiplayer mode.
+- cin_force43: Force videos to be displayed in 4:3, e.g. without distortions.
+- cl_anglespeedkey: Offset multiplied onto the network frame time when predicting movement angles. 
+- cl_async: If enabled the client is asynchronous, the render framerate is independent from the network framerate.
+- cl_blend: If enabled the screen is blended when the player takes damage or wears powerups.
+- cl_drawfps: Shows the framecounter. Please note that the framecouter is rather inaccurate.
+- cl_entities: Draw entities.
+- cl_footsteps: Foodstep noises while walking and running.
+- cl_forwardspeed: Player forward and backward movement speed.
+- cl_gun: Decides weather the gun is drawn. 1 -> Draw the gun if the FOV is >90 ; 2 -> Always draw the gun.
+- cl_lights: If enabled dynamic lights are rendered.
+- cl_maxfps: Sets the network framerate. If cl_async is 0 the renderer framerate is capped at cl_maxfps.
+- cl_nodelta: Don't delta compress movement commands send to the server.
+- cl_noskins: Don't draw individual skins, use the default skin instead.
+- cl_particles: If enabled particles are rendered.
+- cl_pitchspeed:
+- cl_predict: Enables or disabled movement predictions.
+- cl_run: If enabled the player is alwas running.
+- cl_showmiss: Prints an error message in case the movement prediction failed.
+- cl_shownet: Print debug output regarding network package processing.
+- cl_sidespeed: Player strafing / sideward movement speed.
+- cl_stats: Print internal client statistics, like the number of entities.
+- cl_testblend: Test blendig code by applying some artificial blends.
+- cl_testentities: Draw some entities for testing purposes.
+- cl_testlights: Draws 32 colored dynamic lights in front of the player. For testing purposes.
+- cl_testparticles: Draws some partice for testing purposes.
+- cl_timeout: Timeout for network connections. In seconds.
+- cl_upspeed: Specifies the speed of the up and down movement when keyboard look is used.
+- cl_vwep: Use the same weapon model on all multiplayer models.
+- cl_yawspeed: Specifies the speed of the left and right movement when keyboard look is used.
+- con_notifytime: Specifies how long console messages are drawn. In seconds.
+- coop: If set to 1 the game is in coop mode.
+- crosshair: The crosshair to use.
+- crosshair_scale: Scale factor of the crosshair.
+- deathmatch: If set to 1 the game is in deathmatch mode.
+- debuggraph: Draws a graph with some debug informations at the bottom of the screen.
+- dedicated: If set to 1 the game is in dedicated server mode.
+- developer: If set to 1 the game is in developer mode, e.g. some debugcode is enabled and debug messages are printed.
+- dmflags: Deathmatch flags, also used for coop. This is a 32 bit long bit mask.
+- exponential_speedup: If enabled the mouse becomes faster the longer it's moved.
+- filterban: If set to 1 IP addresses on the filtered list are banned from the server. If set to 0 they're allowed.
+- fixedtime: Fixes the client timing to 1 millisecond. This is for debug purposes.
+- flood_msgs:
+- flood_persecond:
+- flood_waitdelay:
+- fov: Sets the fiel of view. Should be set to 90 when 'horplus' is set to 1.
+- fraglimit: The fraglimit.
+- freelook: If set to 1 the mouse look is free, e.g. the player uses the mouse to turn around.
+- fs_debug: File system debug output.
+- g_select_empty:
+- game:
+- gamedate:
+- gamename:
+- gender:
+- gender_auto:
+- gl3_debugcontext:
+- gl3_intensity:
+- gl3_overbrightbits:
+- gl3_particle_fade_factor:
+- gl3_particle_size:
+- gl_anisotropic:
+- gl_clear:
+- gl_consolescale:
+- gl_cull:
+- gl_customheight:
+- gl_customwidth:
+- gl_drawbuffer:
+- gl_drawentities:
+- gl_drawworld:
+- gl_dynamic:
+- gl_farsee:
+- gl_finish:
+- gl_fullbright:
+- gl_hudscale:
+- gl_lightlevel:
+- gl_lightmap:
+- gl_lockpvs:
+- gl_maxfps:
+- gl_menuscale:
+- gl_mode:
+- gl_modulate:
+- gl_msaa_samples:
+- gl_nobind:
+- gl_nolerp_list:
+- gl_norefresh:
+- gl_novis:
+- gl_overbrightbits:
+- gl_palettedtexture:
+- gl_particle_att_a:
+- gl_particle_att_b:
+- gl_particle_att_c:
+- gl_particle_max_size:
+- gl_particle_min_size:
+- gl_particle_size:
+- gl_pointparameters:
+- gl_retexturing:
+- gl_shadows:
+- gl_speeds:
+- gl_stencilshadow:
+- gl_stereo:
+- gl_stereo_anaglyph_colors:
+- gl_stereo_convergence:
+- gl_stereo_separation:
+- gl_swapinterval:
+- gl_texturealphamode:
+- gl_texturemode:
+- gl_texturesolidmode:
+- gl_zfix:
+- graphheight:
+- graphscale:
+- graphshift:
+- gun_x:
+- gun_y:
+- gun_z:
+- hand:
+- homepath:
+- horplus:
+- host_speeds:
+- hostname:
+- in_grab:
+- in_mouse:
+- intensity:
+- log_stats:
+- logfile:
+- lookspring:
+- lookstrafe:
+- m_filter:
+- m_forward:
+- m_pitch:
+- m_side:
+- m_yaw:
+- map_noareas:
+- mapname:
+- maxclients:
+- maxentities:
+- maxspectators:
+- modder:
+- msg:
+- name:
+- needpass:
+- netgraph:
+- nextserver:
+- ogg_autoplay:
+- ogg_check:
+- ogg_enable:
+- ogg_ignoretrack0:
+- ogg_playlist:
+- ogg_sequence:
+- ogg_volume:
+- password:
+- paused:
+- portable:
+- protocol:
+- public:
+- qport:
+- rate:
+- rcon_address:
+- rcon_password:
+- run_pitch:
+- run_roll:
+- s_ambient:
+- s_initsound:
+- s_khz:
+- s_loadas8bit:
+- s_mixahead:
+- s_openal:
+- s_openal_maxgain:
+- s_show:
+- s_testsound:
+- s_underwater:
+- s_underwater_gain_hf:
+- s_volume:
+- scr_centertime:
+- scr_conspeed:
+- scr_drawall:
+- scr_showpause:
+- scr_showturtle:
+- sensitivity:
+- showclamp:
+- showdrop:
+- showpackets:
+- showtrace:
+- skill:
+- skin:
+- spectator:
+- spectator_password:
+- sv_airaccelerate:
+- sv_enforcetime:
+- sv_gravity:
+- sv_maplist:
+- sv_maxvelocity:
+- sv_noreload:
+- sv_rollangle:
+- sv_rollspeed:
+- timedemo:
+- timegraph:
+- timelimit:
+- timeout:
+- timescale:
+- version:
+- vid_fullscreen:
+- vid_gamma:
+- vid_renderer:
+- viewsize:
+- win_noalttab:
+- windowed_mouse:
